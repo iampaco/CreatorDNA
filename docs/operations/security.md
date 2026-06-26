@@ -61,14 +61,14 @@ Document justification for each manifest permission in **P6-16**:
 
 ## Security Checklist (P6-17)
 
-- [ ] Unauthenticated API calls return 401/403
-- [ ] Upload size limits enforced
-- [ ] SQL injection prevented (ORM / parameterized queries)
-- [ ] CORS restricted to extension origin(s)
-- [ ] Dependencies scanned in CI (npm audit, pip audit or equivalent)
-- [ ] No secrets in git history (scan before launch)
-- [ ] Media TTL cleanup verified
-- [ ] Error responses do not leak stack traces to clients in production
+- [x] Unauthenticated API calls return 401/403
+- [x] Upload size limits enforced (`UPLOAD_MAX_BYTES`, content type validation)
+- [x] SQL injection prevented (ORM / parameterized queries)
+- [x] CORS restricted to extension origin(s)
+- [x] Dependencies scanned in CI (npm audit, pip audit)
+- [x] No secrets in git history (scan before launch)
+- [x] Media TTL cleanup verified (Celery Beat + `cleanup_expired_media`)
+- [x] Error responses do not leak stack traces to clients in production
 
 ## Related
 

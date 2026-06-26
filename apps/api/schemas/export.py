@@ -1,9 +1,9 @@
-from enum import Enum
+from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
-class ExportFormat(str, Enum):
+class ExportFormat(StrEnum):
     markdown = "markdown"
     json = "json"
     pdf = "pdf"

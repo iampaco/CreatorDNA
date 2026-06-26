@@ -2,8 +2,10 @@ import base64
 import json
 import logging
 import os
+import time
 from pathlib import Path
 
+from workers.services.quota import check_and_increment, log_ai_usage
 from workers.services.vision_analysis import load_frame_visual_prompt, parse_visual_json
 
 logger = logging.getLogger(__name__)
@@ -65,11 +67,13 @@ def analyze_frames(*, frame_paths: list[Path], timestamps: list[float]) -> dict:
         logger.warning("OPENAI_API_KEY missing; using dev mock vision analysis")
         return _mock_visual_result(frame_inputs)
 
+    check_and_increment("ANALYZE_FRAMES")
     from openai import OpenAI
 
     prompt = load_frame_visual_prompt()
     client = OpenAI(api_key=api_key)
     model = os.getenv("OPENAI_VISION_MODEL", os.getenv("OPENAI_CHAT_MODEL", "gpt-4o-mini"))
+    started = time.perf_counter()
 
     content: list[dict] = [
         {
@@ -100,4 +104,8 @@ def analyze_frames(*, frame_paths: list[Path], timestamps: list[float]) -> dict:
     raw = response.choices[0].message.content or ""
     parsed = parse_visual_json(raw)
     parsed["raw_model"] = model
+    usage = getattr(response, "usage", None)
+    tokens = getattr(usage, "total_tokens", None) if usage else None
+    duration_ms = int((time.perf_counter() - started) * 1000)
+    log_ai_usage(step="ANALYZE_FRAMES", model=model, tokens_used=tokens, duration_ms=duration_ms)
     return parsed

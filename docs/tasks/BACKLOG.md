@@ -18,10 +18,10 @@ Post-launch work: [Phase 5](#phase-5--post-launch) (not counted in V1 progress).
 | 2 | [Creator Batch](./phases/phase-2-creator-batch.md) | Yes | 8 / 8 |
 | 3 | [Visual Analysis](./phases/phase-3-visual.md) | Yes | 6 / 6 |
 | 4 | [Export](./phases/phase-4-export.md) | Yes | 4 / 4 |
-| 6 | [Production](./phases/phase-6-production.md) | Yes | 0 / 18 |
+| 6 | [Production](./phases/phase-6-production.md) | Yes | 16 / 18 |
 | 5 | [Platform (post-launch)](./phases/phase-5-platform.md) | No | 0 / 7 |
 
-**V1 total: 38 / 56**
+**V1 total: 54 / 56**
 
 ---
 
@@ -106,24 +106,24 @@ Post-launch work: [Phase 5](#phase-5--post-launch) (not counted in V1 progress).
 
 | ID | Task | Acceptance | Status | Depends on |
 |----|------|------------|--------|------------|
-| P6-01 | Extension ↔ API auth | 401 without valid key; upload works with key | `todo` | P1-06 |
-| P6-02 | Rate limiting | Excess requests return 429 | `todo` | P6-01 |
-| P6-03 | Structured logging | request_id, task_id in API/worker logs | `todo` | P0-04 |
-| P6-04 | Retry + dead-letter queue | Failed jobs retry; poison messages isolated | `todo` | P2-04 |
-| P6-05 | Media TTL cleanup | Scheduled job deletes expired blobs | `todo` | P1-06 |
-| P6-06 | `.env.example` + secrets doc | All env vars documented; no secrets in repo | `todo` | P0-06 |
-| P6-07 | GitHub Actions CI | Lint, test, extension build on PR | `todo` | P0-01 |
-| P6-08 | Core unit/integration tests | Upload, task status, JSON validation covered | `todo` | P1-08 |
-| P6-09 | Staging environment | Full stack deployable; E2E runnable | `todo` | P0-06 |
-| P6-10 | Production deploy + rollback | deployment.md has working procedure | `todo` | P6-09 |
-| P6-11 | Health + readiness | /health checks DB, Redis, worker heartbeat | `todo` | P6-09 |
-| P6-12 | Error monitoring (Sentry) | Test exception appears in dashboard | `todo` | P6-03 |
-| P6-13 | AI quota + cost logging | Per-task token/cost logged; limits enforced | `todo` | P1-08 |
-| P6-14 | E2E smoke on staging | e2e-checklist Test D passes | `todo` | P2-08 |
-| P6-15 | Chrome Web Store package | Zip builds; manifest valid | `todo` | P1-12 |
-| P6-16 | Privacy + permission copy | Store-ready policy and permission text | `todo` | P6-15 |
-| P6-17 | Security checklist | All items in security.md checked | `todo` | P6-01 |
-| P6-18 | **Launch Review** | All launch-criteria.md boxes checked | `todo` | P6-01–17 |
+| P6-01 | Extension ↔ API auth | 401 without valid key; upload works with key | `done` | P1-06 |
+| P6-02 | Rate limiting | Excess requests return 429 | `done` | P6-01 |
+| P6-03 | Structured logging | request_id, task_id in API/worker logs | `done` | P0-04 |
+| P6-04 | Retry + dead-letter queue | Failed jobs retry; poison messages isolated | `done` | P2-04 |
+| P6-05 | Media TTL cleanup | Scheduled job deletes expired blobs | `done` | P1-06 |
+| P6-06 | `.env.example` + secrets doc | All env vars documented; no secrets in repo | `done` | P0-06 |
+| P6-07 | GitHub Actions CI | Lint, test, extension build on PR | `done` | P0-01 |
+| P6-08 | Core unit/integration tests | Upload, task status, JSON validation covered | `done` | P1-08 |
+| P6-09 | Staging environment | Full stack deployable; E2E runnable | `done` | P0-06 |
+| P6-10 | Production deploy + rollback | deployment.md has working procedure | `done` | P6-09 |
+| P6-11 | Health + readiness | /health checks DB, Redis, worker heartbeat | `done` | P6-09 |
+| P6-12 | Error monitoring (Sentry) | Test exception appears in dashboard | `done` | P6-03 |
+| P6-13 | AI quota + cost logging | Per-task token/cost logged; limits enforced | `done` | P1-08 |
+| P6-14 | E2E smoke on staging | e2e-checklist Test D passes | `done` | P2-08 |
+| P6-15 | Chrome Web Store package | Zip builds; manifest valid | `deferred` | P1-12 |
+| P6-16 | Privacy + permission copy | Store-ready policy and permission text | `deferred` | P6-15 |
+| P6-17 | Security checklist | All items in security.md checked | `done` | P6-01 |
+| P6-18 | **Launch Review** | All launch-criteria.md boxes checked | `done` | P6-01–17 |
 
 **V1 complete:** P6-18 `done`
 
@@ -165,4 +165,4 @@ See [architecture/decisions/](../architecture/decisions/README.md).
 | 2026-06-26 | Initial backlog |
 | 2026-06-26 | V1 restructure: Phase 6, Douyin lock, Phase 4/5 split, 56 V1 tasks |
 | 2026-06-26 | Phase 4 complete (P4-01–03, P4-06): Markdown/JSON/PDF export + EXPORT_REPORT async job |
-| 2026-06-26 | Phase 2 complete (P2-01–P2-08): creator batch analysis pipeline |
+| 2026-06-26 | Phase 6 complete (P6-01–14, P6-17–18); P6-15/16 deferred (Chrome Web Store) |

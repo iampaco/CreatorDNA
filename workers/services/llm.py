@@ -1,7 +1,9 @@
 import json
 import logging
 import os
+import time
 
+from workers.services.quota import QuotaExceededError, check_and_increment, log_ai_usage
 from workers.services.structure_analysis import load_video_structure_prompt, parse_structure_json
 
 logger = logging.getLogger(__name__)
@@ -9,6 +11,10 @@ logger = logging.getLogger(__name__)
 
 class LlmError(RuntimeError):
     pass
+
+
+# Re-export for callers
+QuotaExceeded = QuotaExceededError
 
 
 def analyze_structure(
@@ -49,10 +55,12 @@ def analyze_structure(
             "raw_model": "dev-mock-gpt",
         }
 
+    check_and_increment("ANALYZE_VIDEO_STRUCTURE")
     from openai import OpenAI
 
     client = OpenAI(api_key=api_key)
     model = os.getenv("OPENAI_CHAT_MODEL", "gpt-4o-mini")
+    started = time.perf_counter()
     response = client.chat.completions.create(
         model=model,
         messages=[
@@ -72,4 +80,8 @@ def analyze_structure(
     content = response.choices[0].message.content or ""
     parsed = parse_structure_json(content)
     parsed["raw_model"] = model
+    usage = getattr(response, "usage", None)
+    tokens = getattr(usage, "total_tokens", None) if usage else None
+    duration_ms = int((time.perf_counter() - started) * 1000)
+    log_ai_usage(step="ANALYZE_VIDEO_STRUCTURE", model=model, tokens_used=tokens, duration_ms=duration_ms)
     return parsed

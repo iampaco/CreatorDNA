@@ -205,6 +205,20 @@ function render(session: AnalysisSession): void {
   );
   panel.append(header);
 
+  const settingsCard = el("section", "card settings");
+  settingsCard.append(el("h2", undefined, "连接设置"));
+  const apiKeyInput = el("input", "settings-input") as HTMLInputElement;
+  apiKeyInput.type = "password";
+  apiKeyInput.placeholder = "API Key（staging/production 必填）";
+  void browser.storage.local.get("apiKey").then((stored) => {
+    apiKeyInput.value = (stored.apiKey as string | undefined) || "";
+  });
+  apiKeyInput.addEventListener("change", () => {
+    void browser.storage.local.set({ apiKey: apiKeyInput.value.trim() });
+  });
+  settingsCard.append(el("label", "settings-label", "API Key"), apiKeyInput);
+  panel.append(settingsCard);
+
   const isVideoPage = session.pageDetection?.pageType === "video" && !!session.videoMeta?.videoUrl;
   const isCreatorPage =
     session.pageDetection?.pageType === "creator" && !!session.creatorProfile?.profileUrl;

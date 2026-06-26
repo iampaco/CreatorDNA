@@ -28,6 +28,22 @@ body {
   font-size: 13px;
 }
 
+.settings-label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.settings-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
 .card {
   background: #fff;
   border: 1px solid #e5e7eb;

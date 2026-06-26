@@ -53,21 +53,29 @@ pnpm --filter extension dev
 3. Select `apps/extension/.output/chrome-mv3`
 4. Open a Douyin page → open side panel from extension icon
 
-## API Base URL
+## API Base URL & Auth
 
-Extension will target `http://localhost:8000` in Phase 1 (`VITE_API_URL` or equivalent).
+- Local default: `http://localhost:8000` (no auth when `ENVIRONMENT=local` and `API_SECRET_KEY` unset)
+- Staging/production: set `API_SECRET_KEY` in `.env`; enter the same key in the extension side panel **连接设置**
+- Full variable reference: [.env.example](../../.env.example), [secrets.md](../operations/secrets.md)
+
+## Staging Full Stack
+
+```bash
+docker compose -f infra/docker-compose.staging.yml up -d --build
+docker compose -f infra/docker-compose.staging.yml exec api alembic upgrade head
+curl http://localhost:8000/ready
+```
 
 ## Verify Stack
 
 ```bash
 pnpm typecheck
+pnpm lint
+pnpm test
 pnpm --filter extension build
 curl http://localhost:8000/health
-# Expected: {"status":"ok"}
-
-# After docker + migrations:
-docker compose -f infra/docker-compose.yml ps
-python3 -m alembic current
+curl http://localhost:8000/ready
 ```
 
 ## Common Issues

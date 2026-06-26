@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from apps.api.db.session import get_db
+from apps.api.deps.auth import verify_api_key
 from apps.api.schemas.creator import CreateCreatorAnalysisRequest, CreateCreatorAnalysisResponse
 from apps.api.schemas.error import ApiErrorResponse
 from apps.api.services.creator import CreatorService
@@ -15,6 +16,7 @@ router = APIRouter(prefix="/api", tags=["creators"])
 def create_creator_analysis(
     request: CreateCreatorAnalysisRequest,
     db: Session = Depends(get_db),
+    _api_key: str | None = Depends(verify_api_key),
 ) -> CreateCreatorAnalysisResponse:
     service = CreatorService(db)
     try:

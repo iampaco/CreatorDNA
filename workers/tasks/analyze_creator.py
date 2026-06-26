@@ -6,7 +6,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from apps.api.config import get_settings
-from apps.api.db.models.analysis_task import AnalysisTask
 from apps.api.db.models.creator import Creator
 from apps.api.db.models.creator_analysis_task import CreatorAnalysisTask
 from apps.api.db.models.creator_report import CreatorReport

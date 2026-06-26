@@ -1,5 +1,5 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -47,13 +47,13 @@ def test_compute_frame_timestamps_covers_hook_middle_end() -> None:
 def test_probe_and_extract_frames_from_sample_video(tmp_path: Path) -> None:
     sample = _ensure_sample_video()
 
-  duration = probe_duration(sample)
-  timestamps = compute_frame_timestamps(duration, max_frames=4)
-  frames = extract_frames_at_timestamps(sample, tmp_path / "frames", timestamps)
-  assert len(frames) == len(timestamps)
-  for frame in frames:
-      assert frame.path.exists()
-      assert frame.path.stat().st_size > 0
+    duration = probe_duration(sample)
+    timestamps = compute_frame_timestamps(duration, max_frames=4)
+    frames = extract_frames_at_timestamps(sample, tmp_path / "frames", timestamps)
+    assert len(frames) == len(timestamps)
+    for frame in frames:
+        assert frame.path.exists()
+        assert frame.path.stat().st_size > 0
 
 
 def test_probe_duration_rejects_invalid_file(tmp_path: Path) -> None:

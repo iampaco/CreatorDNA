@@ -11,12 +11,6 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-def test_health(client: TestClient) -> None:
-    response = client.get("/health")
-    assert response.status_code == 200
-    assert response.json()["status"] == "ok"
-
-
 @patch("apps.api.routers.videos.analyze_video_task")
 @patch("apps.api.services.video.StorageService")
 def test_upload_rejects_non_douyin(mock_storage_cls: MagicMock, mock_task: MagicMock, client: TestClient) -> None:

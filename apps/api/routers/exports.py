@@ -5,6 +5,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from apps.api.db.session import get_db
+from apps.api.deps.auth import verify_api_key
 from apps.api.schemas.error import ApiErrorResponse
 from apps.api.schemas.export import CreateExportRequest, CreateExportResponse, ExportFormat
 from apps.api.services.export import ExportService
@@ -66,6 +67,7 @@ def create_export(
     creator_id: uuid.UUID,
     request: CreateExportRequest,
     db: Session = Depends(get_db),
+    _api_key: str | None = Depends(verify_api_key),
 ) -> CreateExportResponse:
     from workers.tasks.export_report import export_report_task
 

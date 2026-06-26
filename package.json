@@ -11,6 +11,8 @@
     "dev:extension": "pnpm --filter extension dev",
     "build": "pnpm -r build",
     "build:extension": "pnpm --filter extension build",
-    "typecheck": "pnpm --filter @creator-dna/shared-types exec tsc --noEmit && pnpm --filter @creator-dna/platform-core exec tsc --noEmit"
+    "typecheck": "pnpm --filter @creator-dna/shared-types exec tsc --noEmit && pnpm --filter @creator-dna/platform-core exec tsc --noEmit",
+    "test": "pytest tests/ -v",
+    "lint": "pnpm typecheck && ruff check apps workers tests"
   }
 }

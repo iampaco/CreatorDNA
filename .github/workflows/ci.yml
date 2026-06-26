@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: creatordna
+          POSTGRES_PASSWORD: creatordna
+          POSTGRES_DB: creatordna
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U creatordna -d creatordna"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Install Python dependencies
+        run: pip install -e ".[dev]" 2>/dev/null || pip install -e .
+
+      - name: Ruff lint
+        run: ruff check apps workers tests
+
+      - name: Pytest
+        env:
+          ENVIRONMENT: test
+          AUTH_REQUIRED: "false"
+          RATE_LIMIT_ENABLED: "false"
+          DATABASE_URL: postgresql+psycopg://creatordna:creatordna@localhost:5432/creatordna
+          REDIS_URL: redis://localhost:6379/0
+        run: pytest tests/ -v
+
+      - name: Build extension
+        run: pnpm --filter extension build
+
+      - name: npm audit
+        continue-on-error: true
+        run: pnpm audit --audit-level=high
+
+      - name: pip audit
+        continue-on-error: true
+        run: pip install pip-audit && pip-audit

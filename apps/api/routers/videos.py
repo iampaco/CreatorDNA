@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from apps.api.db.session import get_db
+from apps.api.deps.auth import verify_api_key
 from apps.api.schemas.error import ApiErrorResponse
-from apps.api.schemas.task import TaskProgressResponse, UploadVideoResponse
-from apps.api.services.analysis import get_task_or_404, get_video_analysis, task_to_response
+from apps.api.schemas.task import UploadVideoResponse
 from apps.api.services.video import VideoService
 from workers.tasks.analyze_video import analyze_video_task
 
@@ -23,6 +23,7 @@ async def upload_video(
     creatorId: str | None = Form(None),
     batchTaskId: str | None = Form(None),
     db: Session = Depends(get_db),
+    _api_key: str | None = Depends(verify_api_key),
 ) -> UploadVideoResponse:
     service = VideoService(db)
     try:
@@ -46,6 +47,16 @@ async def upload_video(
             raise HTTPException(
                 status_code=400,
                 detail=ApiErrorResponse(error=code, message=str(exc)).model_dump(),
+            ) from exc
+        if code == "file_too_large":
+            raise HTTPException(
+                status_code=413,
+                detail=ApiErrorResponse(error=code, message="Uploaded file exceeds size limit.").model_dump(),
+            ) from exc
+        if code == "invalid_content_type":
+            raise HTTPException(
+                status_code=400,
+                detail=ApiErrorResponse(error=code, message="Unsupported upload content type.").model_dump(),
             ) from exc
         raise HTTPException(
             status_code=400,

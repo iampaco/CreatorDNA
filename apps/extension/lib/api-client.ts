@@ -14,6 +14,31 @@ export async function getApiBaseUrl(): Promise<string> {
   return (stored.apiBaseUrl as string | undefined) || DEFAULT_API_BASE;
 }
 
+async function getApiKey(): Promise<string | undefined> {
+  const stored = await browser.storage.local.get("apiKey");
+  return stored.apiKey as string | undefined;
+}
+
+async function authHeaders(extra: Record<string, string> = {}): Promise<Record<string, string>> {
+  const headers = { ...extra };
+  const apiKey = await getApiKey();
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+  return headers;
+}
+
+async function parseApiError(response: Response): Promise<string> {
+  const body = (await response.json().catch(() => null)) as
+    | { detail?: { message?: string; error?: string }; message?: string; error?: string }
+    | null;
+  if (body?.detail?.message) return body.detail.message;
+  if (body?.message) return body.message;
+  if (body?.detail?.error === "unauthorized") return "API 密钥无效或未配置。请在设置中填写 API Key。";
+  if (body?.detail?.error === "rate_limited") return "请求过于频繁，请稍后重试。";
+  return `Request failed (${response.status})`;
+}
+
 export async function uploadVideoSegment(params: {
   file: Blob;
   videoUrl: string;
@@ -35,12 +60,12 @@ export async function uploadVideoSegment(params: {
 
   const response = await fetch(`${apiBase}/api/videos/upload`, {
     method: "POST",
+    headers: await authHeaders(),
     body: form,
   });
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as { error?: string; message?: string } | null;
-    throw new Error(body?.message || `Upload failed (${response.status})`);
+    throw new Error(await parseApiError(response));
   }
 
   return response.json() as Promise<{ videoId: string; taskId: string }>;
@@ -97,7 +122,7 @@ export async function createCreatorAnalysis(params: {
   const apiBase = await getApiBaseUrl();
   const response = await fetch(`${apiBase}/api/creator-analysis`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({
       platform: "douyin",
       creatorUrl: params.creatorUrl,
@@ -115,8 +140,7 @@ export async function createCreatorAnalysis(params: {
     }),
   });
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as { detail?: { message?: string } } | null;
-    throw new Error(body?.detail?.message || `Creator analysis failed (${response.status})`);
+    throw new Error(await parseApiError(response));
   }
   return response.json();
 }
@@ -138,12 +162,11 @@ export async function createReportExport(
   const apiBase = await getApiBaseUrl();
   const response = await fetch(`${apiBase}/api/reports/${creatorId}/export`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ format }),
   });
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as { detail?: { message?: string } } | null;
-    throw new Error(body?.detail?.message || `Export failed (${response.status})`);
+    throw new Error(await parseApiError(response));
   }
   return response.json() as Promise<{ taskId: string; status: string; format: ExportFormat }>;
 }

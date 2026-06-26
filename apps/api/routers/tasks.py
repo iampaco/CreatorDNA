@@ -7,7 +7,7 @@ from apps.api.db.session import get_db
 from apps.api.schemas.analysis import VideoAnalysisResponse
 from apps.api.schemas.error import ApiErrorResponse
 from apps.api.schemas.task import TaskProgressResponse
-from apps.api.services.analysis import get_task_or_404, get_video_analysis, resolve_task_response, task_to_response
+from apps.api.services.analysis import get_video_analysis, resolve_task_response
 
 router = APIRouter(prefix="/api", tags=["tasks"])
 

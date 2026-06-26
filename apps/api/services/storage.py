@@ -46,3 +46,14 @@ class StorageService:
 
     def build_export_key(self, task_id: uuid.UUID, export_format: str) -> str:
         return f"exports/{task_id}/report.{export_format if export_format != 'markdown' else 'md'}"
+
+    def delete_object(self, key: str) -> None:
+        self.client.delete_object(Bucket=self.settings.storage_bucket, Key=key)
+
+    def list_objects(self, *, prefix: str) -> list[dict]:
+        paginator = self.client.get_paginator("list_objects_v2")
+        objects: list[dict] = []
+        for page in paginator.paginate(Bucket=self.settings.storage_bucket, Prefix=prefix):
+            for item in page.get("Contents", []):
+                objects.append({"key": item["Key"], "last_modified": item["LastModified"]})
+        return objects

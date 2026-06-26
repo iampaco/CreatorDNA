@@ -4,6 +4,7 @@ import uuid
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
+from apps.api.config import get_settings
 from apps.api.db.models.analysis_task import AnalysisTask
 from apps.api.db.models.creator_analysis_task import CreatorAnalysisTask
 from apps.api.db.models.video import Video
@@ -35,12 +36,20 @@ class VideoService:
         creator_id: uuid.UUID | None = None,
         batch_task_id: uuid.UUID | None = None,
     ) -> tuple[Video, AnalysisTask]:
+        settings = get_settings()
+
         if "douyin" not in video_url:
             raise ValueError("unsupported_platform")
+
+        content_type = (file.content_type or "video/webm").split(";")[0].strip().lower()
+        if content_type not in settings.allowed_upload_types:
+            raise ValueError("invalid_content_type")
 
         file_bytes = file.file.read()
         if not file_bytes:
             raise ValueError("empty_file")
+        if len(file_bytes) > settings.upload_max_bytes:
+            raise ValueError("file_too_large")
 
         if video_id:
             video = self.db.get(Video, video_id)
