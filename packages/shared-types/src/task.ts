@@ -5,6 +5,8 @@ export type TaskStatus =
   | "failed"
   | "cancelled";
 
+export type ExportFormat = "markdown" | "json" | "pdf";
+
 export interface AnalysisTask {
   taskId: string;
   status: TaskStatus;
@@ -13,6 +15,7 @@ export interface AnalysisTask {
   finishedVideos?: number;
   totalVideos?: number;
   error?: string;
+  downloadUrl?: string;
 }
 
 export type TaskProgress = AnalysisTask;

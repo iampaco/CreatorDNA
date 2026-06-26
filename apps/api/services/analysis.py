@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from apps.api.db.models.analysis_task import AnalysisTask
 from apps.api.db.models.creator_analysis_task import CreatorAnalysisTask
+from apps.api.db.models.export_task import ExportTask
 from apps.api.db.models.transcript import Transcript
 from apps.api.db.models.video_style_analysis import VideoStyleAnalysis
 from apps.api.db.models.visual_analysis import VisualAnalysis
@@ -59,7 +60,29 @@ def batch_task_to_response(task: CreatorAnalysisTask) -> TaskProgressResponse:
     )
 
 
+def export_task_to_response(task: ExportTask) -> TaskProgressResponse:
+    download_url = None
+    if task.status == "completed":
+        download_url = f"/api/exports/{task.id}/download"
+    step_by_format = {
+        "markdown": "正在导出 Markdown",
+        "json": "正在导出 JSON",
+        "pdf": "正在生成 PDF",
+    }
+    return TaskProgressResponse(
+        taskId=str(task.id),
+        status=task.status,
+        progress=task.progress,
+        currentStep=step_by_format.get(task.format, "正在导出报告"),
+        error=task.error_code,
+        downloadUrl=download_url,
+    )
+
+
 def resolve_task_response(db: Session, task_id: uuid.UUID) -> TaskProgressResponse:
+    export_task = db.get(ExportTask, task_id)
+    if export_task:
+        return export_task_to_response(export_task)
     batch_task = db.get(CreatorAnalysisTask, task_id)
     if batch_task:
         return batch_task_to_response(batch_task)

@@ -15,3 +15,4 @@ class TaskProgressResponse(BaseModel):
     finishedVideos: int | None = None
     totalVideos: int | None = None
     error: str | None = None
+    downloadUrl: str | None = None

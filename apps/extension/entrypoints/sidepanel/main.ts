@@ -1,4 +1,10 @@
 import type { AnalysisSession } from "../../lib/messages";
+import {
+  createReportExport,
+  downloadExportFile,
+  pollExportUntilReady,
+} from "../../lib/api-client";
+import { downloadJson, downloadText } from "../../lib/download";
 import "./style.css";
 
 const USER_ERROR_MESSAGES: Record<string, string> = {
@@ -50,6 +56,72 @@ function renderSampleSizeSelector(selected: number, disabled: boolean): HTMLElem
     group.append(btn);
   }
   wrap.append(group);
+  return wrap;
+}
+
+function renderExportActions(session: AnalysisSession): HTMLElement {
+  const wrap = el("div", "export-actions");
+  wrap.append(el("p", "export-label", "导出报告"));
+
+  const report = session.creatorReport;
+  const creatorId = session.creatorId || report?.creatorId;
+  let exporting = false;
+
+  const setExporting = (value: boolean) => {
+    exporting = value;
+    for (const btn of wrap.querySelectorAll<HTMLButtonElement>("button.export")) {
+      btn.disabled = value;
+    }
+  };
+
+  const showExportError = (message: string) => {
+    const existing = wrap.querySelector(".export-error");
+    existing?.remove();
+    const error = el("p", "export-error", message);
+    wrap.append(error);
+  };
+
+  const mdBtn = el("button", "export secondary", "Markdown") as HTMLButtonElement;
+  mdBtn.type = "button";
+  mdBtn.addEventListener("click", () => {
+    if (!report?.reportMarkdown || exporting) return;
+    const filename = `creator-report-${creatorId || "export"}.md`;
+    downloadText(filename, report.reportMarkdown, "text/markdown;charset=utf-8");
+  });
+
+  const jsonBtn = el("button", "export secondary", "JSON") as HTMLButtonElement;
+  jsonBtn.type = "button";
+  jsonBtn.addEventListener("click", () => {
+    if (!report || exporting) return;
+    const filename = `creator-report-${creatorId || "export"}.json`;
+    downloadJson(filename, {
+      creatorId: report.creatorId,
+      sampleVideoCount: report.sampleVideoCount,
+      reportJson: report.reportJson,
+    });
+  });
+
+  const pdfBtn = el("button", "export", "PDF") as HTMLButtonElement;
+  pdfBtn.type = "button";
+  pdfBtn.addEventListener("click", () => {
+    if (!creatorId || exporting) return;
+    setExporting(true);
+    void (async () => {
+      try {
+        const created = await createReportExport(creatorId, "pdf");
+        const task = await pollExportUntilReady(created.taskId);
+        const filename = `creator-report-${creatorId}.pdf`;
+        await downloadExportFile(created.taskId, filename);
+        if (!task.downloadUrl) return;
+      } catch (error) {
+        showExportError(error instanceof Error ? error.message : "PDF 导出失败");
+      } finally {
+        setExporting(false);
+      }
+    })();
+  });
+
+  wrap.append(mdBtn, jsonBtn, pdfBtn);
   return wrap;
 }
 
@@ -114,6 +186,8 @@ function renderCreatorReport(session: AnalysisSession): HTMLElement {
     details.append(summary, pre);
     card.append(details);
   }
+
+  card.append(renderExportActions(session));
 
   return card;
 }

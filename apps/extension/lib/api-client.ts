@@ -2,6 +2,7 @@ import type {
   AnalysisTask,
   CreatorReport,
   CreatorVideoMeta,
+  ExportFormat,
   VideoStyleAnalysis,
   VisualAnalysis,
 } from "@creator-dna/shared-types";
@@ -128,4 +129,50 @@ export async function getCreatorReport(creatorId: string): Promise<CreatorReport
     throw new Error(body?.detail?.message || `Report fetch failed (${response.status})`);
   }
   return response.json() as Promise<CreatorReport>;
+}
+
+export async function createReportExport(
+  creatorId: string,
+  format: ExportFormat,
+): Promise<{ taskId: string; status: string; format: ExportFormat }> {
+  const apiBase = await getApiBaseUrl();
+  const response = await fetch(`${apiBase}/api/reports/${creatorId}/export`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ format }),
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { detail?: { message?: string } } | null;
+    throw new Error(body?.detail?.message || `Export failed (${response.status})`);
+  }
+  return response.json() as Promise<{ taskId: string; status: string; format: ExportFormat }>;
+}
+
+export async function downloadExportFile(taskId: string, filename: string): Promise<void> {
+  const apiBase = await getApiBaseUrl();
+  const response = await fetch(`${apiBase}/api/exports/${taskId}/download`);
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { detail?: { message?: string } } | null;
+    throw new Error(body?.detail?.message || `Download failed (${response.status})`);
+  }
+  const blob = await response.blob();
+  const { downloadBlob } = await import("./download");
+  downloadBlob(filename, blob);
+}
+
+export async function pollExportUntilReady(
+  taskId: string,
+  onProgress?: (task: AnalysisTask) => void,
+): Promise<AnalysisTask> {
+  const maxAttempts = 60;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const task = await getTaskProgress(taskId);
+    onProgress?.(task);
+    if (task.status === "completed") return task;
+    if (task.status === "failed") {
+      throw new Error(task.error || "导出失败");
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+  }
+  throw new Error("导出超时，请稍后重试");
 }

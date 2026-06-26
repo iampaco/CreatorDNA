@@ -24,7 +24,10 @@ Authorization: Bearer <api_key_or_jwt>
 | `GET` | `/api/videos/:videoId/analysis` | Single-video result | 1 | Implemented |
 | `POST` | `/api/creator-analysis` | Start creator batch job | 2 | Implemented |
 | `GET` | `/api/reports/:creatorId` | Creator-level report | 2 | Implemented |
-| `POST` | `/api/reports/:id/export` | Export MD/PDF/JSON | 4 | Planned |
+| `GET` | `/api/reports/:creatorId/export/markdown` | Download Markdown report | 4 | Implemented |
+| `GET` | `/api/reports/:creatorId/export/json` | Download JSON report | 4 | Implemented |
+| `POST` | `/api/reports/:creatorId/export` | Enqueue async export (MD/JSON/PDF) | 4 | Implemented |
+| `GET` | `/api/exports/:taskId/download` | Download completed export file | 4 | Implemented |
 
 ## Create Creator Analysis
 

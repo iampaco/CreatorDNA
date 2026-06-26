@@ -101,6 +101,18 @@ Index of core data contracts. Canonical SQL and JSON examples in [AGENTS.md](../
 
 `positioning`, `hookPatterns`, `speechStyle`, `shootingStyle`, `subtitleEditingStyle`, `reusableTemplates`
 
+## Export
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `format` | `markdown` \| `json` \| `pdf` | Export format |
+| `taskId` | `string` | Export task UUID (async) |
+| `downloadUrl` | `string` | Relative path when export completes |
+
+Sync download: `GET /api/reports/:creatorId/export/markdown` or `/json`.
+
+Async export: `POST /api/reports/:creatorId/export` → poll `GET /api/tasks/:taskId` → `GET /api/exports/:taskId/download`.
+
 ## API Error Shape
 
 ```json

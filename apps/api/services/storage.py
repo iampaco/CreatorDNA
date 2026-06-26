@@ -43,3 +43,6 @@ class StorageService:
 
     def build_frame_key(self, video_id: uuid.UUID, frame_index: int) -> str:
         return f"frames/{video_id}/frame_{frame_index:04d}.jpg"
+
+    def build_export_key(self, task_id: uuid.UUID, export_format: str) -> str:
+        return f"exports/{task_id}/report.{export_format if export_format != 'markdown' else 'md'}"

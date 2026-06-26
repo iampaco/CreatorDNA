@@ -3,9 +3,9 @@
 > **Agents:** Read this first. Next action at bottom.
 
 **Last updated:** 2026-06-26  
-**V1 progress:** 34 / 56 tasks  
-**Current phase:** Phase 4 — Export  
-**Next task:** [P4-01](tasks/BACKLOG.md#phase-4--export-v1) — Export Markdown
+**V1 progress:** 38 / 56 tasks  
+**Current phase:** Phase 6 — Production  
+**Next task:** [P6-01](tasks/BACKLOG.md#phase-6--production-hardening) — Extension ↔ API auth
 
 ## V1 Definition
 
@@ -20,13 +20,13 @@ Douyin Web · Chrome Extension + Backend · Single/batch/visual/export · Produc
 | 1 Single Video | 12 | 12 | Complete |
 | 2 Creator Batch | 8 | 8 | Complete |
 | 3 Visual | 6 | 6 | Complete |
-| 4 Export | 0 | 4 | Ready |
-| 6 Production | 0 | 18 | Blocked by Phase 4 |
+| 4 Export | 4 | 4 | Complete |
+| 6 Production | 0 | 18 | Ready |
 | 5 Post-launch | — | 7 | Out of V1 scope |
 
 ## Active Blockers
 
-None — start at P4-01.
+None — start at P6-01.
 
 ## Open Decisions
 
@@ -43,6 +43,7 @@ All locked. See [architecture/decisions/](architecture/decisions/README.md).
 
 | Date | Change |
 |------|--------|
+| 2026-06-26 | Phase 4 complete: Markdown/JSON/PDF export, EXPORT_REPORT async job, side panel export UI |
 | 2026-06-26 | Phase 3 complete: frame extraction, vision worker, visual aggregation, report template |
 | 2026-06-26 | Phase 2 complete: creator batch analysis, aggregation, report generation, batch side panel UI |
 | 2026-06-26 | Phase 0 complete: monorepo, shared-types, extension/API/workers shells, docker-compose, Alembic |
@@ -58,7 +59,7 @@ All locked. See [architecture/decisions/](architecture/decisions/README.md).
 ## Next Action
 
 ```txt
-Task: P4-01
-Doc:  docs/tasks/phases/phase-4-export.md
-Goal: Export Markdown
+Task: P6-01
+Doc:  docs/tasks/phases/phase-6-production.md
+Goal: Extension ↔ API auth
 ```

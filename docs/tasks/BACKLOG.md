@@ -17,11 +17,11 @@ Post-launch work: [Phase 5](#phase-5--post-launch) (not counted in V1 progress).
 | 1 | [Single Video](./phases/phase-1-single-video.md) | Yes | 12 / 12 |
 | 2 | [Creator Batch](./phases/phase-2-creator-batch.md) | Yes | 8 / 8 |
 | 3 | [Visual Analysis](./phases/phase-3-visual.md) | Yes | 6 / 6 |
-| 4 | [Export](./phases/phase-4-export.md) | Yes | 0 / 4 |
+| 4 | [Export](./phases/phase-4-export.md) | Yes | 4 / 4 |
 | 6 | [Production](./phases/phase-6-production.md) | Yes | 0 / 18 |
 | 5 | [Platform (post-launch)](./phases/phase-5-platform.md) | No | 0 / 7 |
 
-**V1 total: 34 / 56**
+**V1 total: 38 / 56**
 
 ---
 
@@ -93,10 +93,10 @@ Post-launch work: [Phase 5](#phase-5--post-launch) (not counted in V1 progress).
 
 | ID | Task | Acceptance | Status | Depends on |
 |----|------|------------|--------|------------|
-| P4-01 | Export Markdown | User gets .md from extension or API | `todo` | P2-06 |
-| P4-02 | Export JSON | Valid reportJson download | `todo` | P2-06 |
-| P4-03 | Export PDF | Readable PDF generated | `todo` | P4-01 |
-| P4-06 | EXPORT_REPORT job | Async export with status polling | `todo` | P4-01 |
+| P4-01 | Export Markdown | User gets .md from extension or API | `done` | P2-06 |
+| P4-02 | Export JSON | Valid reportJson download | `done` | P2-06 |
+| P4-03 | Export PDF | Readable PDF generated | `done` | P4-01 |
+| P4-06 | EXPORT_REPORT job | Async export with status polling | `done` | P4-01 |
 | P4-04 | Scaffold `apps/web` (Next.js) | — | `deferred` | P0-01 |
 | P4-05 | Web report viewer | — | `deferred` | P4-04, P2-06 |
 
@@ -164,5 +164,5 @@ See [architecture/decisions/](../architecture/decisions/README.md).
 |------|--------|
 | 2026-06-26 | Initial backlog |
 | 2026-06-26 | V1 restructure: Phase 6, Douyin lock, Phase 4/5 split, 56 V1 tasks |
-| 2026-06-26 | Phase 3 complete (P3-01–P3-06): visual analysis pipeline |
+| 2026-06-26 | Phase 4 complete (P4-01–03, P4-06): Markdown/JSON/PDF export + EXPORT_REPORT async job |
 | 2026-06-26 | Phase 2 complete (P2-01–P2-08): creator batch analysis pipeline |
