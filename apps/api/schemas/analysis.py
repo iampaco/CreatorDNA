@@ -6,6 +6,26 @@ class ContentStructurePart(BaseModel):
     description: str
 
 
+class FrameAnalysisResponse(BaseModel):
+    frameTime: float
+    shotType: str | None = None
+    cameraAngle: str | None = None
+    composition: str | None = None
+    background: str | None = None
+    subtitleVisible: bool | None = None
+    subtitlePosition: str | None = None
+    subtitleStyle: str | None = None
+    visualElements: list[str] = Field(default_factory=list)
+    bRoll: bool | None = None
+
+
+class VisualAnalysisResponse(BaseModel):
+    videoId: str
+    frames: list[FrameAnalysisResponse] = Field(default_factory=list)
+    summary: dict = Field(default_factory=dict)
+    visionModel: str | None = None
+
+
 class VideoStyleAnalysisResponse(BaseModel):
     videoId: str
     hookType: str | None = None
@@ -18,6 +38,9 @@ class VideoStyleAnalysisResponse(BaseModel):
     endingType: str | None = None
     shootingStyle: str | None = None
     reusableTemplate: str | None = None
+    subtitlePosition: str | None = None
+    subtitleStyle: str | None = None
+    subtitleConsistency: str | None = None
 
 
 class TranscriptSummary(BaseModel):
@@ -29,3 +52,4 @@ class VideoAnalysisResponse(BaseModel):
     videoId: str
     transcript: TranscriptSummary | None = None
     analysis: VideoStyleAnalysisResponse | None = None
+    visualAnalysis: VisualAnalysisResponse | None = None

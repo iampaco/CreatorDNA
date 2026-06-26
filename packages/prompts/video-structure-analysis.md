@@ -10,6 +10,7 @@ You receive:
 
 - `title` — video title if available
 - `transcript` — ASR transcript text
+- `visualSummary` (optional) — rolled-up vision analysis: shot type, subtitle position/style, format hints
 
 ## Output JSON schema
 
@@ -25,7 +26,7 @@ Return a single JSON object with these fields:
 | `emotionalTone` | string | Tone description |
 | `commonPhrases` | string[] | Recurring phrases (structural, not identity cloning) |
 | `endingType` | string | Ending pattern |
-| `shootingStyle` | string | Visual/speech style hint from transcript cues |
+| `shootingStyle` | string | Visual shooting + subtitle style; prefer `visualSummary.shootingStyleHint` when present |
 | `reusableTemplate` | string | Structural formula (not a script clone) |
 
 ## Rules
@@ -33,7 +34,7 @@ Return a single JSON object with these fields:
 - Output valid JSON only.
 - All string values in Chinese when the source is Chinese.
 - Focus on structure and method, not impersonation.
-- If transcript is short or noisy, infer conservatively and say so in `emotionalTone`.
+- If `visualSummary` is provided, use it for `shootingStyle` instead of guessing from transcript alone.
 
 ## Example
 

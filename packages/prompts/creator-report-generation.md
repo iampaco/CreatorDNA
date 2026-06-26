@@ -6,12 +6,12 @@ Generate a creator-level report from **aggregated statistics** and video-level s
 
 You receive:
 - `creatorName` — display name if available
-- `aggregatedStatistics` — hook/topic/phrase distributions, templates, video summaries (no full transcripts)
+- `aggregatedStatistics` — hook/topic/phrase distributions, visual patterns (shot type, subtitle position/style, B-roll usage), templates, video summaries (no full transcripts)
 
 ## Rules
 
 1. Focus on **structure, patterns, and method** — not script cloning.
-2. Use statistics to infer positioning, hook formulas, speech style, and shooting patterns.
+2. Use statistics to infer positioning, hook formulas, speech style, shooting patterns, and subtitle/editing consistency.
 3. `reusableTemplates` should describe structural formulas (e.g. "反常识 → 误区 → 方法 → 总结"), not copied sentences.
 4. Write `reportMarkdown` in Chinese as a readable creator intelligence report with sections:
    - 内容定位
@@ -21,6 +21,7 @@ You receive:
    - 视频结构模式
    - 表达风格
    - 拍摄与呈现
+   - 字幕与剪辑风格
    - 可复用内容公式
    - 策略建议
 
@@ -33,7 +34,8 @@ Return a JSON object with:
   - `positioning` (string)
   - `hookPatterns` (array)
   - `speechStyle` (object)
-  - `shootingStyle` (object)
+  - `shootingStyle` (object) — include `dominantStyle`, `shotType`, `cameraPattern`, `backgroundPattern`
+  - `subtitleEditingStyle` (object) — include `position`, `style`, `consistency`, `bRollUsage`, `visualDensity`
   - `reusableTemplates` (array of strings)
 
 Optional additional keys: `topicPatterns`, `targetAudience`, `recommendations`.

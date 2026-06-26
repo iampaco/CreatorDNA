@@ -6,11 +6,14 @@ from apps.api.db.models.analysis_task import AnalysisTask
 from apps.api.db.models.creator_analysis_task import CreatorAnalysisTask
 from apps.api.db.models.transcript import Transcript
 from apps.api.db.models.video_style_analysis import VideoStyleAnalysis
+from apps.api.db.models.visual_analysis import VisualAnalysis
 from apps.api.schemas.analysis import (
     ContentStructurePart,
+    FrameAnalysisResponse,
     TranscriptSummary,
     VideoAnalysisResponse,
     VideoStyleAnalysisResponse,
+    VisualAnalysisResponse,
 )
 from apps.api.schemas.task import TaskProgressResponse
 
@@ -66,6 +69,34 @@ def resolve_task_response(db: Session, task_id: uuid.UUID) -> TaskProgressRespon
     raise LookupError("task_not_found")
 
 
+def _build_visual_response(video_id: uuid.UUID, visual: VisualAnalysis) -> VisualAnalysisResponse:
+    frames: list[FrameAnalysisResponse] = []
+    if isinstance(visual.frames, list):
+        for item in visual.frames:
+            if not isinstance(item, dict):
+                continue
+            frames.append(
+                FrameAnalysisResponse(
+                    frameTime=float(item.get("frameTime") or 0),
+                    shotType=item.get("shotType"),
+                    cameraAngle=item.get("cameraAngle"),
+                    composition=item.get("composition"),
+                    background=item.get("background"),
+                    subtitleVisible=item.get("subtitleVisible"),
+                    subtitlePosition=item.get("subtitlePosition"),
+                    subtitleStyle=item.get("subtitleStyle"),
+                    visualElements=item.get("visualElements") if isinstance(item.get("visualElements"), list) else [],
+                    bRoll=item.get("bRoll"),
+                )
+            )
+    return VisualAnalysisResponse(
+        videoId=str(video_id),
+        frames=frames,
+        summary=visual.summary if isinstance(visual.summary, dict) else {},
+        visionModel=visual.vision_model,
+    )
+
+
 def get_video_analysis(db: Session, video_id: uuid.UUID) -> VideoAnalysisResponse:
     transcript = (
         db.query(Transcript)
@@ -79,6 +110,12 @@ def get_video_analysis(db: Session, video_id: uuid.UUID) -> VideoAnalysisRespons
         .order_by(VideoStyleAnalysis.created_at.desc())
         .first()
     )
+    visual = (
+        db.query(VisualAnalysis)
+        .filter(VisualAnalysis.video_id == video_id)
+        .order_by(VisualAnalysis.created_at.desc())
+        .first()
+    )
 
     transcript_summary = None
     if transcript and transcript.full_text:
@@ -86,6 +123,8 @@ def get_video_analysis(db: Session, video_id: uuid.UUID) -> VideoAnalysisRespons
             fullText=transcript.full_text,
             language=transcript.language or "zh",
         )
+
+    visual_summary = visual.summary if visual and isinstance(visual.summary, dict) else {}
 
     analysis = None
     if style:
@@ -111,10 +150,16 @@ def get_video_analysis(db: Session, video_id: uuid.UUID) -> VideoAnalysisRespons
             endingType=style.ending_type,
             shootingStyle=style.shooting_style,
             reusableTemplate=style.reusable_template,
+            subtitlePosition=visual_summary.get("dominantSubtitlePosition"),
+            subtitleStyle=visual_summary.get("dominantSubtitleStyle"),
+            subtitleConsistency=visual_summary.get("subtitleConsistency"),
         )
+
+    visual_analysis = _build_visual_response(video_id, visual) if visual else None
 
     return VideoAnalysisResponse(
         videoId=str(video_id),
         transcript=transcript_summary,
         analysis=analysis,
+        visualAnalysis=visual_analysis,
     )

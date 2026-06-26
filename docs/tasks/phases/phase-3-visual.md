@@ -7,9 +7,9 @@
 
 ## Acceptance Criteria (phase gate)
 
-- [ ] Frames extracted at key timestamps (0–5s, middle, end)
-- [ ] `visual_analyses` populated per video
-- [ ] Creator report includes shooting style and subtitle consistency
+- [x] Frames extracted at key timestamps (0–5s, middle, end)
+- [x] `visual_analyses` populated per video
+- [x] Creator report includes shooting style and subtitle consistency
 
 ## Task Checklist
 

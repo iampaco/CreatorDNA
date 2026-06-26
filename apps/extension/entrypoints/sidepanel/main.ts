@@ -4,6 +4,7 @@ import "./style.css";
 const USER_ERROR_MESSAGES: Record<string, string> = {
   capture_denied: "录制权限被拒绝。请在浏览器提示中允许标签页捕获后重试。",
   asr_failed: "语音转写失败。请确认视频有清晰旁白后重试。",
+  vision_failed: "视觉分析失败。请确认视频画面可见后重试。",
   llm_parse_failed: "结构分析结果无效。请稍后重试。",
   upload_failed: "上传失败。请检查 API 服务是否运行。",
   unsupported_platform: "当前页面不支持分析。请打开抖音视频页或创作者主页。",
@@ -86,6 +87,14 @@ function renderCreatorReport(session: AnalysisSession): HTMLElement {
       "拍摄风格",
       typeof json.shootingStyle === "object" && json.shootingStyle
         ? Object.entries(json.shootingStyle as Record<string, unknown>)
+            .map(([k, v]) => `${k}: ${String(v)}`)
+            .join("；")
+        : "",
+    ),
+    renderReportSection(
+      "字幕与剪辑",
+      typeof json.subtitleEditingStyle === "object" && json.subtitleEditingStyle
+        ? Object.entries(json.subtitleEditingStyle as Record<string, unknown>)
             .map(([k, v]) => `${k}: ${String(v)}`)
             .join("；")
         : "",
@@ -260,6 +269,9 @@ function render(session: AnalysisSession): void {
       renderReportSection("情绪基调", analysis.emotionalTone),
       renderReportSection("结尾类型", analysis.endingType),
       renderReportSection("拍摄风格", analysis.shootingStyle),
+      renderReportSection("字幕位置", analysis.subtitlePosition || ""),
+      renderReportSection("字幕样式", analysis.subtitleStyle || ""),
+      renderReportSection("字幕一致性", analysis.subtitleConsistency || ""),
       renderReportSection("可复用模板", analysis.reusableTemplate),
       renderReportSection("目标受众", analysis.targetAudience?.join("、") || ""),
       renderReportSection("常用表达", analysis.commonPhrases?.join("、") || ""),

@@ -3,6 +3,7 @@ export interface ReportJson {
   hookPatterns: unknown[];
   speechStyle: Record<string, unknown>;
   shootingStyle: Record<string, unknown>;
+  subtitleEditingStyle?: Record<string, unknown>;
   reusableTemplates: unknown[];
   [key: string]: unknown;
 }

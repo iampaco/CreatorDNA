@@ -1,4 +1,10 @@
-import type { AnalysisTask, CreatorReport, CreatorVideoMeta, VideoStyleAnalysis } from "@creator-dna/shared-types";
+import type {
+  AnalysisTask,
+  CreatorReport,
+  CreatorVideoMeta,
+  VideoStyleAnalysis,
+  VisualAnalysis,
+} from "@creator-dna/shared-types";
 
 const DEFAULT_API_BASE = "http://localhost:8000";
 
@@ -53,6 +59,7 @@ export async function getVideoAnalysis(videoId: string): Promise<{
   videoId: string;
   transcript?: { fullText: string; language: string };
   analysis?: VideoStyleAnalysis;
+  visualAnalysis?: VisualAnalysis;
 }> {
   const apiBase = await getApiBaseUrl();
   const response = await fetch(`${apiBase}/api/videos/${videoId}/analysis`);
@@ -64,6 +71,7 @@ export async function getVideoAnalysis(videoId: string): Promise<{
     videoId: string;
     transcript?: { fullText: string; language: string };
     analysis?: VideoStyleAnalysis;
+    visualAnalysis?: VisualAnalysis;
   }>;
 }
 

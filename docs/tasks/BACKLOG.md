@@ -16,12 +16,12 @@ Post-launch work: [Phase 5](#phase-5--post-launch) (not counted in V1 progress).
 | 0 | [Foundation](./phases/phase-0-foundation.md) | Yes | 8 / 8 |
 | 1 | [Single Video](./phases/phase-1-single-video.md) | Yes | 12 / 12 |
 | 2 | [Creator Batch](./phases/phase-2-creator-batch.md) | Yes | 8 / 8 |
-| 3 | [Visual Analysis](./phases/phase-3-visual.md) | Yes | 0 / 6 |
+| 3 | [Visual Analysis](./phases/phase-3-visual.md) | Yes | 6 / 6 |
 | 4 | [Export](./phases/phase-4-export.md) | Yes | 0 / 4 |
 | 6 | [Production](./phases/phase-6-production.md) | Yes | 0 / 18 |
 | 5 | [Platform (post-launch)](./phases/phase-5-platform.md) | No | 0 / 7 |
 
-**V1 total: 28 / 56**
+**V1 total: 34 / 56**
 
 ---
 
@@ -80,12 +80,12 @@ Post-launch work: [Phase 5](#phase-5--post-launch) (not counted in V1 progress).
 
 | ID | Task | Acceptance | Status | Depends on |
 |----|------|------------|--------|------------|
-| P3-01 | Frame extraction worker | Frames in storage; key timestamps covered | `todo` | P1-07 |
-| P3-02 | `frame-visual-analysis.md` prompt | Prompt file with JSON output spec | `todo` | P0-08 |
-| P3-03 | Vision worker | `visual_analyses` row with frames + summary | `todo` | P3-01, P3-02 |
-| P3-04 | Merge vision into structure | Video report includes visual fields | `todo` | P3-03, P1-08 |
-| P3-05 | Creator visual aggregation | Subtitle/shooting patterns in aggregation | `todo` | P2-05, P3-04 |
-| P3-06 | Report template update | Creator report has shooting/subtitle sections | `todo` | P3-05 |
+| P3-01 | Frame extraction worker | Frames in storage; key timestamps covered | `done` | P1-07 |
+| P3-02 | `frame-visual-analysis.md` prompt | Prompt file with JSON output spec | `done` | P0-08 |
+| P3-03 | Vision worker | `visual_analyses` row with frames + summary | `done` | P3-01, P3-02 |
+| P3-04 | Merge vision into structure | Video report includes visual fields | `done` | P3-03, P1-08 |
+| P3-05 | Creator visual aggregation | Subtitle/shooting patterns in aggregation | `done` | P2-05, P3-04 |
+| P3-06 | Report template update | Creator report has shooting/subtitle sections | `done` | P3-05 |
 
 ---
 
@@ -164,4 +164,5 @@ See [architecture/decisions/](../architecture/decisions/README.md).
 |------|--------|
 | 2026-06-26 | Initial backlog |
 | 2026-06-26 | V1 restructure: Phase 6, Douyin lock, Phase 4/5 split, 56 V1 tasks |
+| 2026-06-26 | Phase 3 complete (P3-01–P3-06): visual analysis pipeline |
 | 2026-06-26 | Phase 2 complete (P2-01–P2-08): creator batch analysis pipeline |

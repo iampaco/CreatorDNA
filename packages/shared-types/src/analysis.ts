@@ -30,6 +30,9 @@ export interface VideoStyleAnalysis {
   endingType: string;
   shootingStyle: string;
   reusableTemplate: string;
+  subtitlePosition?: string;
+  subtitleStyle?: string;
+  subtitleConsistency?: string;
 }
 
 export interface FrameAnalysis {

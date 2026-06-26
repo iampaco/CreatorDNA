@@ -82,9 +82,11 @@ Index of core data contracts. Canonical SQL and JSON examples in [AGENTS.md](../
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `frames` | `JSONB` | Per-frame analysis array |
-| `summary` | `JSONB` | Rolled-up visual summary |
+| `frames` | `JSONB` | Per-frame analysis array (`frameTime`, `shotType`, `subtitlePosition`, etc.) |
+| `summary` | `JSONB` | Rolled-up visual summary (`dominantShotType`, `dominantSubtitlePosition`, `shootingStyleHint`, etc.) |
 | `visionModel` | `string` | Model identifier |
+
+`GET /api/videos/:videoId/analysis` returns `visualAnalysis` alongside `analysis` and `transcript`.
 
 ## Creator Report
 
@@ -97,7 +99,7 @@ Index of core data contracts. Canonical SQL and JSON examples in [AGENTS.md](../
 
 ### `reportJson` sections (minimum)
 
-`positioning`, `hookPatterns`, `speechStyle`, `shootingStyle`, `reusableTemplates`
+`positioning`, `hookPatterns`, `speechStyle`, `shootingStyle`, `subtitleEditingStyle`, `reusableTemplates`
 
 ## API Error Shape
 

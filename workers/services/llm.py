@@ -11,16 +11,26 @@ class LlmError(RuntimeError):
     pass
 
 
-def analyze_structure(*, transcript_text: str, title: str | None) -> dict:
+def analyze_structure(
+    *,
+    transcript_text: str,
+    title: str | None,
+    visual_summary: dict | None = None,
+) -> dict:
     api_key = os.getenv("OPENAI_API_KEY")
     prompt = load_video_structure_prompt()
-    user_payload = {
+    user_payload: dict = {
         "title": title or "",
         "transcript": transcript_text,
     }
+    if visual_summary:
+        user_payload["visualSummary"] = visual_summary
 
     if not api_key:
         logger.warning("OPENAI_API_KEY missing; using dev mock structure analysis")
+        shooting_style = "正面口播 + 大字幕"
+        if visual_summary and visual_summary.get("shootingStyleHint"):
+            shooting_style = str(visual_summary["shootingStyleHint"])
         return {
             "hookType": "反常识开头",
             "hookText": transcript_text[:40] or "很多人以为做内容靠灵感，其实靠结构。",
@@ -34,7 +44,7 @@ def analyze_structure(*, transcript_text: str, title: str | None) -> dict:
             "emotionalTone": "坚定、教学式",
             "commonPhrases": ["本质上", "你会发现"],
             "endingType": "观点总结 + 关注引导",
-            "shootingStyle": "正面口播 + 大字幕",
+            "shootingStyle": shooting_style,
             "reusableTemplate": "反常识判断 → 常见误区 → 方法解释 → 一句话总结",
             "raw_model": "dev-mock-gpt",
         }

@@ -12,11 +12,19 @@ from apps.api.db.models.analysis_task import AnalysisTask
 from apps.api.db.models.transcript import Transcript
 from apps.api.db.models.video import Video
 from apps.api.db.models.video_style_analysis import VideoStyleAnalysis
+from apps.api.db.models.visual_analysis import VisualAnalysis
 from apps.api.services.storage import StorageService
 from workers.celery_app import celery_app
 from workers.services.asr import AsrError, transcribe_audio
-from workers.services.ffmpeg import FfmpegError, extract_audio_wav
+from workers.services.ffmpeg import (
+    FfmpegError,
+    compute_frame_timestamps,
+    extract_audio_wav,
+    extract_frames_at_timestamps,
+    probe_duration,
+)
 from workers.services.llm import LlmError, analyze_structure
+from workers.services.vision import VisionError, analyze_frames
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +57,12 @@ def _update_task(
     db.commit()
 
 
+def _clear_prior_results(db: Session, video_id: uuid.UUID) -> None:
+    for model in (Transcript, VisualAnalysis, VideoStyleAnalysis):
+        db.query(model).filter(model.video_id == video_id).delete()
+    db.commit()
+
+
 @celery_app.task(name="workers.tasks.analyze_video.analyze_video_task", bind=True)
 def analyze_video_task(self, task_id: str) -> dict:
     db = SessionLocal()
@@ -67,13 +81,66 @@ def analyze_video_task(self, task_id: str) -> dict:
         if not object_key:
             raise ValueError("missing media object key")
 
-        _update_task(db, task, status="processing", progress=20, current_step="提取音频")
+        _update_task(db, task, status="processing", progress=10, current_step="准备媒体")
+        _clear_prior_results(db, video.id)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
             input_path = tmp / "capture.webm"
             wav_path = tmp / "audio.wav"
+            frames_dir = tmp / "frames"
             input_path.write_bytes(storage.download_bytes(object_key))
+
+            _update_task(db, task, progress=20, current_step="提取关键帧")
+            visual_summary: dict | None = None
+            vision_model: str | None = None
+            frame_analyses: list[dict] = []
+
+            try:
+                duration = probe_duration(input_path)
+                video.duration_seconds = duration
+                db.commit()
+
+                timestamps = compute_frame_timestamps(duration)
+                extracted = extract_frames_at_timestamps(input_path, frames_dir, timestamps)
+
+                for index, frame in enumerate(extracted, start=1):
+                    frame_key = storage.build_frame_key(video.id, index)
+                    storage.upload_bytes(
+                        key=frame_key,
+                        data=frame.path.read_bytes(),
+                        content_type="image/jpeg",
+                    )
+
+                _update_task(db, task, progress=35, current_step="视觉分析")
+                vision_result = analyze_frames(
+                    frame_paths=[frame.path for frame in extracted],
+                    timestamps=[frame.timestamp for frame in extracted],
+                )
+                frame_analyses = vision_result.get("frames", [])
+                visual_summary = vision_result.get("summary")
+                vision_model = str(vision_result.get("raw_model") or "unknown")
+
+                visual_row = VisualAnalysis(
+                    video_id=video.id,
+                    frames=frame_analyses,
+                    summary=visual_summary,
+                    vision_model=vision_model,
+                )
+                db.add(visual_row)
+                db.commit()
+            except (FfmpegError, VisionError, ValueError) as exc:
+                logger.exception("vision pipeline failed task_id=%s", task_id)
+                _update_task(
+                    db,
+                    task,
+                    status="failed",
+                    progress=100,
+                    current_step="视觉分析失败",
+                    error_code="vision_failed",
+                    error_message=str(exc),
+                )
+                return {"status": "failed", "error": "vision_failed"}
 
             try:
                 extract_audio_wav(input_path, wav_path)
@@ -89,7 +156,7 @@ def analyze_video_task(self, task_id: str) -> dict:
                 )
                 return {"status": "failed", "error": "asr_failed"}
 
-            _update_task(db, task, progress=45, current_step="语音转写")
+            _update_task(db, task, progress=55, current_step="语音转写")
 
             try:
                 asr_result = transcribe_audio(wav_path)
@@ -116,12 +183,13 @@ def analyze_video_task(self, task_id: str) -> dict:
             db.add(transcript)
             db.commit()
 
-            _update_task(db, task, progress=70, current_step="结构分析")
+            _update_task(db, task, progress=75, current_step="结构分析")
 
             try:
                 structure = analyze_structure(
                     transcript_text=asr_result["full_text"],
                     title=video.title,
+                    visual_summary=visual_summary,
                 )
             except (LlmError, ValueError, Exception) as exc:
                 logger.exception("structure analysis failed task_id=%s", task_id)
@@ -136,6 +204,10 @@ def analyze_video_task(self, task_id: str) -> dict:
                 )
                 return {"status": "failed", "error": "llm_parse_failed"}
 
+            shooting_style = structure.get("shootingStyle")
+            if visual_summary and visual_summary.get("shootingStyleHint"):
+                shooting_style = str(visual_summary["shootingStyleHint"])
+
             style = VideoStyleAnalysis(
                 video_id=video.id,
                 hook_type=structure.get("hookType"),
@@ -146,9 +218,9 @@ def analyze_video_task(self, task_id: str) -> dict:
                 emotional_tone=structure.get("emotionalTone"),
                 common_phrases=structure.get("commonPhrases"),
                 ending_type=structure.get("endingType"),
-                shooting_style=structure.get("shootingStyle"),
+                shooting_style=shooting_style,
                 reusable_template=structure.get("reusableTemplate"),
-                raw_analysis=structure,
+                raw_analysis={**structure, "visualSummary": visual_summary},
             )
             db.add(style)
             _update_task(db, task, status="completed", progress=100, current_step="分析完成")

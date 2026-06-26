@@ -40,3 +40,6 @@ class StorageService:
 
     def build_media_key(self, video_id: uuid.UUID) -> str:
         return f"videos/{video_id}/capture.webm"
+
+    def build_frame_key(self, video_id: uuid.UUID, frame_index: int) -> str:
+        return f"frames/{video_id}/frame_{frame_index:04d}.jpg"

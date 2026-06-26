@@ -5,6 +5,7 @@ import type {
   CreatorVideoMeta,
   PlatformPageDetection,
   VideoStyleAnalysis,
+  VisualAnalysis,
 } from "@creator-dna/shared-types";
 
 export type AnalysisState =
@@ -45,6 +46,7 @@ export interface AnalysisSession {
   errorCode?: string;
   errorMessage?: string;
   analysis?: VideoStyleAnalysis;
+  visualAnalysis?: VisualAnalysis;
   creatorReport?: CreatorReport;
   updatedAt: string;
 }

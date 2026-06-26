@@ -129,6 +129,7 @@ async function pollSingleTask(taskId: string, videoId: string): Promise<void> {
         progress: 100,
         currentStep: "分析完成",
         analysis: result.analysis,
+        visualAnalysis: result.visualAnalysis,
       });
       return;
     }

@@ -12,6 +12,7 @@ from apps.api.db.models.creator_analysis_task import CreatorAnalysisTask
 from apps.api.db.models.creator_report import CreatorReport
 from apps.api.db.models.video import Video
 from apps.api.db.models.video_style_analysis import VideoStyleAnalysis
+from apps.api.db.models.visual_analysis import VisualAnalysis
 from apps.api.services.creator import CreatorService
 from workers.celery_app import celery_app
 from workers.services.aggregation import aggregate_video_analyses
@@ -24,8 +25,8 @@ engine = create_engine(settings.database_url, pool_pre_ping=True)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
-def _style_to_dict(style: VideoStyleAnalysis) -> dict:
-    return {
+def _style_to_dict(style: VideoStyleAnalysis, visual: VisualAnalysis | None = None) -> dict:
+    merged: dict = {
         "hookType": style.hook_type,
         "hookText": style.hook_text,
         "topicCategory": style.topic_category,
@@ -37,6 +38,9 @@ def _style_to_dict(style: VideoStyleAnalysis) -> dict:
         "shootingStyle": style.shooting_style,
         "reusableTemplate": style.reusable_template,
     }
+    if visual and isinstance(visual.summary, dict):
+        merged.update(visual.summary)
+    return merged
 
 
 def update_batch_progress(db: Session, batch_task_id: uuid.UUID) -> None:
@@ -89,7 +93,23 @@ def generate_creator_report_task(self, batch_task_id: str) -> dict:
             .filter(VideoStyleAnalysis.video_id.in_(video_ids))
             .all()
         )
-        analyses = [_style_to_dict(s) for s in styles]
+        style_by_video = {style.video_id: style for style in styles}
+        visuals = (
+            db.query(VisualAnalysis)
+            .filter(VisualAnalysis.video_id.in_(video_ids))
+            .order_by(VisualAnalysis.created_at.desc())
+            .all()
+        )
+        visual_by_video: dict[uuid.UUID, VisualAnalysis] = {}
+        for visual in visuals:
+            if visual.video_id not in visual_by_video:
+                visual_by_video[visual.video_id] = visual
+
+        analyses = [
+            _style_to_dict(style_by_video[video_id], visual_by_video.get(video_id))
+            for video_id in video_ids
+            if video_id in style_by_video
+        ]
         aggregated = aggregate_video_analyses(analyses)
 
         try:

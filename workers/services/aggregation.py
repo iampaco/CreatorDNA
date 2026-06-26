@@ -11,7 +11,7 @@ def _counter_to_ranked(counter: Counter[str], limit: int = 10) -> list[dict[str,
 
 
 def aggregate_video_analyses(analyses: list[dict[str, Any]]) -> dict[str, Any]:
-    """Build statistics from video-level style analyses — no raw transcripts."""
+    """Build statistics from video-level style + visual analyses — no raw transcripts."""
     if not analyses:
         return {
             "sampleVideoCount": 0,
@@ -20,6 +20,12 @@ def aggregate_video_analyses(analyses: list[dict[str, Any]]) -> dict[str, Any]:
             "endingTypeDistribution": [],
             "emotionalToneDistribution": [],
             "shootingStyleDistribution": [],
+            "shotTypeDistribution": [],
+            "subtitlePositionDistribution": [],
+            "subtitleStyleDistribution": [],
+            "subtitleConsistencyDistribution": [],
+            "bRollUsageDistribution": [],
+            "visualDensityDistribution": [],
             "commonPhrases": [],
             "reusableTemplates": [],
             "targetAudience": [],
@@ -32,6 +38,12 @@ def aggregate_video_analyses(analyses: list[dict[str, Any]]) -> dict[str, Any]:
     endings: Counter[str] = Counter()
     tones: Counter[str] = Counter()
     shooting: Counter[str] = Counter()
+    shot_types: Counter[str] = Counter()
+    subtitle_positions: Counter[str] = Counter()
+    subtitle_styles: Counter[str] = Counter()
+    subtitle_consistency: Counter[str] = Counter()
+    b_roll_usage: Counter[str] = Counter()
+    visual_density: Counter[str] = Counter()
     phrases: Counter[str] = Counter()
     templates: Counter[str] = Counter()
     audiences: Counter[str] = Counter()
@@ -51,6 +63,18 @@ def aggregate_video_analyses(analyses: list[dict[str, Any]]) -> dict[str, Any]:
             shooting[str(style)] += 1
         if template := item.get("reusableTemplate"):
             templates[str(template)] += 1
+        if shot := item.get("dominantShotType"):
+            shot_types[str(shot)] += 1
+        if position := item.get("dominantSubtitlePosition"):
+            subtitle_positions[str(position)] += 1
+        if sub_style := item.get("dominantSubtitleStyle"):
+            subtitle_styles[str(sub_style)] += 1
+        if consistency := item.get("subtitleConsistency"):
+            subtitle_consistency[str(consistency)] += 1
+        if b_roll := item.get("bRollUsage"):
+            b_roll_usage[str(b_roll)] += 1
+        if density := item.get("visualDensity"):
+            visual_density[str(density)] += 1
 
         for phrase in item.get("commonPhrases") or []:
             if phrase:
@@ -68,6 +92,8 @@ def aggregate_video_analyses(analyses: list[dict[str, Any]]) -> dict[str, Any]:
                 "hookText": str(item.get("hookText") or "")[:80],
                 "topicCategory": str(item.get("topicCategory") or ""),
                 "reusableTemplate": str(item.get("reusableTemplate") or "")[:120],
+                "shootingStyle": str(item.get("shootingStyle") or "")[:80],
+                "subtitlePosition": str(item.get("dominantSubtitlePosition") or ""),
             }
         )
 
@@ -78,6 +104,12 @@ def aggregate_video_analyses(analyses: list[dict[str, Any]]) -> dict[str, Any]:
         "endingTypeDistribution": _counter_to_ranked(endings),
         "emotionalToneDistribution": _counter_to_ranked(tones),
         "shootingStyleDistribution": _counter_to_ranked(shooting),
+        "shotTypeDistribution": _counter_to_ranked(shot_types),
+        "subtitlePositionDistribution": _counter_to_ranked(subtitle_positions),
+        "subtitleStyleDistribution": _counter_to_ranked(subtitle_styles),
+        "subtitleConsistencyDistribution": _counter_to_ranked(subtitle_consistency),
+        "bRollUsageDistribution": _counter_to_ranked(b_roll_usage),
+        "visualDensityDistribution": _counter_to_ranked(visual_density),
         "commonPhrases": _counter_to_ranked(phrases, 20),
         "reusableTemplates": _counter_to_ranked(templates, 10),
         "targetAudience": _counter_to_ranked(audiences, 15),
