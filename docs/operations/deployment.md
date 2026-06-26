@@ -57,7 +57,7 @@ pnpm --filter extension dev
 ```bash
 # 1. Copy and configure secrets
 cp .env.example .env
-# Set API_SECRET_KEY, OPENAI_API_KEY (optional for mock mode)
+# Set API_SECRET_KEY, LLM_API_KEY, and OPENAI_API_KEY (optional for mock ASR/vision mode)
 
 # 2. Start full stack
 docker compose -f infra/docker-compose.staging.yml up -d --build
@@ -85,6 +85,8 @@ Follow [e2e-checklist.md](../development/e2e-checklist.md) **Test D** against `h
 - [ ] Environment variables set in secret manager (see [secrets.md](./secrets.md))
 - [ ] `ENVIRONMENT=production`
 - [ ] `API_SECRET_KEY` configured; extension distributed with same key
+- [ ] `LLM_API_KEY`, `LLM_BASE_URL`, and `LLM_CHAT_MODEL` configured
+- [ ] `OPENAI_API_KEY` configured for ASR/vision, unless those steps are intentionally mocked or replaced
 - [ ] Database migrations applied: `alembic upgrade head`
 - [ ] Redis reachable from API and workers
 - [ ] Storage bucket configured (R2/S3)

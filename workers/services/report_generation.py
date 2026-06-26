@@ -132,21 +132,27 @@ def _mock_report(aggregated: dict, creator_name: str | None) -> dict:
     return {"reportMarkdown": markdown, "reportJson": report_json}
 
 
+def _llm_config() -> tuple[str | None, str | None, str]:
+    api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY")
+    base_url = os.getenv("LLM_BASE_URL") or os.getenv("OPENAI_BASE_URL")
+    model = os.getenv("LLM_CHAT_MODEL") or os.getenv("OPENAI_CHAT_MODEL", "gpt-4o-mini")
+    return api_key, base_url, model
+
+
 def generate_creator_report(
     *,
     aggregated: dict,
     creator_name: str | None,
 ) -> dict:
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key, base_url, model = _llm_config()
     if not api_key:
-        logger.warning("OPENAI_API_KEY missing; using dev mock creator report")
+        logger.warning("LLM_API_KEY/OPENAI_API_KEY missing; using dev mock creator report")
         return _mock_report(aggregated, creator_name)
 
     from openai import OpenAI
 
     prompt = load_creator_report_prompt()
-    client = OpenAI(api_key=api_key)
-    model = os.getenv("OPENAI_CHAT_MODEL", "gpt-4o-mini")
+    client = OpenAI(api_key=api_key, base_url=base_url) if base_url else OpenAI(api_key=api_key)
 
     user_payload = {
         "creatorName": creator_name or "",

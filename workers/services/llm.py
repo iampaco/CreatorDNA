@@ -17,13 +17,20 @@ class LlmError(RuntimeError):
 QuotaExceeded = QuotaExceededError
 
 
+def _llm_config() -> tuple[str | None, str | None, str]:
+    api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY")
+    base_url = os.getenv("LLM_BASE_URL") or os.getenv("OPENAI_BASE_URL")
+    model = os.getenv("LLM_CHAT_MODEL") or os.getenv("OPENAI_CHAT_MODEL", "gpt-4o-mini")
+    return api_key, base_url, model
+
+
 def analyze_structure(
     *,
     transcript_text: str,
     title: str | None,
     visual_summary: dict | None = None,
 ) -> dict:
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key, base_url, model = _llm_config()
     prompt = load_video_structure_prompt()
     user_payload: dict = {
         "title": title or "",
@@ -33,7 +40,7 @@ def analyze_structure(
         user_payload["visualSummary"] = visual_summary
 
     if not api_key:
-        logger.warning("OPENAI_API_KEY missing; using dev mock structure analysis")
+        logger.warning("LLM_API_KEY/OPENAI_API_KEY missing; using dev mock structure analysis")
         shooting_style = "正面口播 + 大字幕"
         if visual_summary and visual_summary.get("shootingStyleHint"):
             shooting_style = str(visual_summary["shootingStyleHint"])
@@ -58,8 +65,7 @@ def analyze_structure(
     check_and_increment("ANALYZE_VIDEO_STRUCTURE")
     from openai import OpenAI
 
-    client = OpenAI(api_key=api_key)
-    model = os.getenv("OPENAI_CHAT_MODEL", "gpt-4o-mini")
+    client = OpenAI(api_key=api_key, base_url=base_url) if base_url else OpenAI(api_key=api_key)
     started = time.perf_counter()
     response = client.chat.completions.create(
         model=model,

@@ -7,7 +7,7 @@ import type {
   VisualAnalysis,
 } from "@creator-dna/shared-types";
 
-const DEFAULT_API_BASE = "http://localhost:8000";
+const DEFAULT_API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export async function getApiBaseUrl(): Promise<string> {
   const stored = await browser.storage.local.get("apiBaseUrl");

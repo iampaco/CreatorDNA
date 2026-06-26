@@ -57,6 +57,8 @@ pnpm --filter extension dev
 
 - Local default: `http://localhost:8000` (no auth when `ENVIRONMENT=local` and `API_SECRET_KEY` unset)
 - Staging/production: set `API_SECRET_KEY` in `.env`; enter the same key in the extension side panel **连接设置**
+- Text LLM: set `LLM_API_KEY`, `LLM_BASE_URL`, and `LLM_CHAT_MODEL` for DeepSeek-compatible report generation
+- ASR/vision: set `OPENAI_API_KEY` for real transcription and OpenAI vision; leave unset only for dev mock mode
 - Full variable reference: [.env.example](../../.env.example), [secrets.md](../operations/secrets.md)
 
 ## Staging Full Stack
