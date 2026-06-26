@@ -13,7 +13,7 @@ Post-launch work: [Phase 5](#phase-5--post-launch) (not counted in V1 progress).
 
 | Phase | Name | V1 | Progress |
 |-------|------|----|----------|
-| 0 | [Foundation](./phases/phase-0-foundation.md) | Yes | 0 / 8 |
+| 0 | [Foundation](./phases/phase-0-foundation.md) | Yes | 8 / 8 |
 | 1 | [Single Video](./phases/phase-1-single-video.md) | Yes | 0 / 12 |
 | 2 | [Creator Batch](./phases/phase-2-creator-batch.md) | Yes | 0 / 8 |
 | 3 | [Visual Analysis](./phases/phase-3-visual.md) | Yes | 0 / 6 |
@@ -21,7 +21,7 @@ Post-launch work: [Phase 5](#phase-5--post-launch) (not counted in V1 progress).
 | 6 | [Production](./phases/phase-6-production.md) | Yes | 0 / 18 |
 | 5 | [Platform (post-launch)](./phases/phase-5-platform.md) | No | 0 / 7 |
 
-**V1 total: 0 / 56**
+**V1 total: 8 / 56**
 
 ---
 
@@ -29,14 +29,14 @@ Post-launch work: [Phase 5](#phase-5--post-launch) (not counted in V1 progress).
 
 | ID | Task | Acceptance | Status | Depends on |
 |----|------|------------|--------|------------|
-| P0-01 | Initialize pnpm monorepo | `pnpm install` succeeds at root | `todo` | — |
-| P0-02 | Scaffold `packages/shared-types` | Core interfaces export without error | `todo` | P0-01 |
-| P0-03 | Scaffold `apps/extension` (WXT+React+TS) | Dev build produces loadable MV3 extension | `todo` | P0-01, P0-02 |
-| P0-04 | Scaffold `apps/api` (FastAPI) | `GET /health` returns 200 | `todo` | P0-01 |
-| P0-05 | Scaffold `workers/` layout | Celery app imports and connects to Redis | `todo` | P0-04 |
-| P0-06 | `infra/docker-compose.yml` | Postgres, Redis, MinIO start healthy | `todo` | P0-04 |
-| P0-07 | Database migrations | All AGENTS.md tables exist | `todo` | P0-06 |
-| P0-08 | `packages/prompts/` placeholders | Five prompt files present | `todo` | P0-01 |
+| P0-01 | Initialize pnpm monorepo | `pnpm install` succeeds at root | `done` | — |
+| P0-02 | Scaffold `packages/shared-types` | Core interfaces export without error | `done` | P0-01 |
+| P0-03 | Scaffold `apps/extension` (WXT+React+TS) | Dev build produces loadable MV3 extension | `done` | P0-01, P0-02 |
+| P0-04 | Scaffold `apps/api` (FastAPI) | `GET /health` returns 200 | `done` | P0-01 |
+| P0-05 | Scaffold `workers/` layout | Celery app imports and connects to Redis | `done` | P0-04 |
+| P0-06 | `infra/docker-compose.yml` | Postgres, Redis, MinIO start healthy | `done` | P0-04 |
+| P0-07 | Database migrations | All AGENTS.md tables exist | `done` | P0-06 |
+| P0-08 | `packages/prompts/` placeholders | Five prompt files present | `done` | P0-01 |
 
 ---
 
@@ -164,3 +164,4 @@ See [architecture/decisions/](../architecture/decisions/README.md).
 |------|--------|
 | 2026-06-26 | Initial backlog |
 | 2026-06-26 | V1 restructure: Phase 6, Douyin lock, Phase 4/5 split, 56 V1 tasks |
+| 2026-06-26 | Phase 0 complete (P0-01–P0-08): monorepo, extension/API/workers shells, infra, migrations |

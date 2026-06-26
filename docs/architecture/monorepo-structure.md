@@ -1,6 +1,6 @@
 # Monorepo Structure
 
-Target layout (not yet scaffolded):
+Target layout (Phase 0 scaffolded):
 
 ```txt
 creator-dna/

@@ -6,7 +6,7 @@ It analyzes publicly visible short-video content through a browser extension and
 
 ## Status
 
-**V1 progress: 0 / 56 tasks** — monorepo not yet scaffolded. Next: [P0-01](docs/tasks/BACKLOG.md).
+**V1 progress: 8 / 56 tasks** — Phase 0 complete. Next: [P1-01](docs/tasks/BACKLOG.md).
 
 ## Documentation
 

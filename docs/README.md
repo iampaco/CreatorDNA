@@ -72,9 +72,9 @@ docs/
 
 | Area | Status |
 |------|--------|
-| V1 overall | 0 / 56 |
-| Monorepo | Not started (P0-01) |
-| Extension | Not started |
-| Backend / Workers | Not started |
+| V1 overall | 8 / 56 |
+| Monorepo | Complete (P0-01) |
+| Extension | Shell ready (P0-03) |
+| Backend / Workers | Shell ready (P0-04, P0-05) |
 
 Last updated: 2026-06-26

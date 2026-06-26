@@ -29,12 +29,14 @@ Pointers to detailed rules in [AGENTS.md](../../AGENTS.md#development-guidelines
 - Update BACKLOG status in same PR as implementation
 - Do not commit secrets (`.env`, API keys)
 
-## Local Development (to be filled at Phase 0)
+## Local Development
 
-```txt
-# Planned — document actual commands after scaffold
+```bash
 pnpm install
+python3 -m pip install -e .
 docker compose -f infra/docker-compose.yml up -d
+python3 -m alembic upgrade head
+python3 -m uvicorn apps.api.main:app --reload --port 8000
+python3 -m celery -A workers.celery_app worker --loglevel=info
 pnpm --filter extension dev
-uvicorn apps.api.main:app --reload
 ```
