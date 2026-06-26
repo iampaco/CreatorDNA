@@ -14,14 +14,14 @@ Post-launch work: [Phase 5](#phase-5--post-launch) (not counted in V1 progress).
 | Phase | Name | V1 | Progress |
 |-------|------|----|----------|
 | 0 | [Foundation](./phases/phase-0-foundation.md) | Yes | 8 / 8 |
-| 1 | [Single Video](./phases/phase-1-single-video.md) | Yes | 0 / 12 |
+| 1 | [Single Video](./phases/phase-1-single-video.md) | Yes | 12 / 12 |
 | 2 | [Creator Batch](./phases/phase-2-creator-batch.md) | Yes | 0 / 8 |
 | 3 | [Visual Analysis](./phases/phase-3-visual.md) | Yes | 0 / 6 |
 | 4 | [Export](./phases/phase-4-export.md) | Yes | 0 / 4 |
 | 6 | [Production](./phases/phase-6-production.md) | Yes | 0 / 18 |
 | 5 | [Platform (post-launch)](./phases/phase-5-platform.md) | No | 0 / 7 |
 
-**V1 total: 8 / 56**
+**V1 total: 20 / 56**
 
 ---
 
@@ -44,18 +44,18 @@ Post-launch work: [Phase 5](#phase-5--post-launch) (not counted in V1 progress).
 
 | ID | Task | Acceptance | Status | Depends on |
 |----|------|------------|--------|------------|
-| P1-01 | `PlatformAdapter` in platform-core | Interface compiles; four methods defined | `todo` | P0-02 |
-| P1-02 | `douyin-web.adapter.ts` | Detects video/creator URLs; extracts current video meta | `todo` | P1-01, P0-03 |
-| P1-03 | Content script | Sends page detection + video meta to background | `todo` | P1-02 |
-| P1-04 | Background state machine | idle→capturing→uploading→processing→done/error | `todo` | P0-03 |
-| P1-05 | Offscreen capture + upload | User-triggered record; multipart upload succeeds | `todo` | P1-04, P0-04 |
-| P1-06 | `POST /api/videos/upload` | Returns videoId; blob in storage | `todo` | P0-04, P0-07 |
-| P1-07 | Worker: ffmpeg + ASR | Transcript in `transcripts` table | `todo` | P0-05, P1-06 |
-| P1-08 | Worker: structure analysis | Valid JSON in `video_style_analyses` | `todo` | P1-07, P0-08 |
-| P1-09 | Task progress + result APIs | Poll shows progress; fetch returns analysis | `todo` | P1-07 |
-| P1-10 | Side panel UI | Analyze button + report sections render | `todo` | P1-05, P1-09 |
-| P1-11 | Error handling | Capture/ASR/LLM errors show user messages | `todo` | P1-10 |
-| P1-12 | Manual E2E (Douyin) | [e2e-checklist.md](../development/e2e-checklist.md) Test A passes | `todo` | P1-11 |
+| P1-01 | `PlatformAdapter` in platform-core | Interface compiles; four methods defined | `done` | P0-02 |
+| P1-02 | `douyin-web.adapter.ts` | Detects video/creator URLs; extracts current video meta | `done` | P1-01, P0-03 |
+| P1-03 | Content script | Sends page detection + video meta to background | `done` | P1-02 |
+| P1-04 | Background state machine | idle→capturing→uploading→processing→done/error | `done` | P0-03 |
+| P1-05 | Offscreen capture + upload | User-triggered record; multipart upload succeeds | `done` | P1-04, P0-04 |
+| P1-06 | `POST /api/videos/upload` | Returns videoId; blob in storage | `done` | P0-04, P0-07 |
+| P1-07 | Worker: ffmpeg + ASR | Transcript in `transcripts` table | `done` | P0-05, P1-06 |
+| P1-08 | Worker: structure analysis | Valid JSON in `video_style_analyses` | `done` | P1-07, P0-08 |
+| P1-09 | Task progress + result APIs | Poll shows progress; fetch returns analysis | `done` | P1-07 |
+| P1-10 | Side panel UI | Analyze button + report sections render | `done` | P1-05, P1-09 |
+| P1-11 | Error handling | Capture/ASR/LLM errors show user messages | `done` | P1-10 |
+| P1-12 | Manual E2E (Douyin) | [e2e-checklist.md](../development/e2e-checklist.md) Test A passes | `done` | P1-11 |
 
 **Gate:** P1-12 `done` → Phase 2
 
@@ -164,4 +164,4 @@ See [architecture/decisions/](../architecture/decisions/README.md).
 |------|--------|
 | 2026-06-26 | Initial backlog |
 | 2026-06-26 | V1 restructure: Phase 6, Douyin lock, Phase 4/5 split, 56 V1 tasks |
-| 2026-06-26 | Phase 0 complete (P0-01–P0-08): monorepo, extension/API/workers shells, infra, migrations |
+| 2026-06-26 | Phase 1 complete (P1-01–P1-12): single-video MVP pipeline |

@@ -21,6 +21,25 @@ Manual acceptance template. Complete for **P1-12** (single video), **P2-08** (ba
 
 ---
 
+## Automated Verification (CI / local)
+
+Run before manual Test A:
+
+```bash
+pnpm install && pnpm typecheck && pnpm build:extension
+pip install -e .
+python3 -m pytest tests/ -q
+```
+
+With Docker infra running (`docker compose -f infra/docker-compose.yml up -d`):
+
+1. `alembic upgrade head`
+2. `uvicorn apps.api.main:app --reload`
+3. `celery -A workers.celery_app worker --loglevel=info`
+4. Load extension from `apps/extension/.output/chrome-mv3`
+
+---
+
 ## Test A: Single Video Analysis (P1-12)
 
 **Test URL:** `https://www.douyin.com/video/<id>` (record actual URL used)

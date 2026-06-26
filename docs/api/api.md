@@ -14,17 +14,17 @@ Authorization: Bearer <api_key_or_jwt>
 - `401` if missing/invalid; `403` if key lacks permission
 - `/health` remains unauthenticated for load balancers
 
-## Endpoints (Planned)
+## Endpoints
 
-| Method | Path | Purpose | Phase |
-|--------|------|---------|-------|
-| `GET` | `/health` | Liveness | 0 |
-| `POST` | `/api/videos/upload` | Upload captured media segment | 1 |
-| `GET` | `/api/tasks/:taskId` | Task progress | 1 |
-| `GET` | `/api/videos/:videoId/analysis` | Single-video result | 1 |
-| `POST` | `/api/creator-analysis` | Start creator batch job | 2 |
-| `GET` | `/api/reports/:creatorId` | Creator-level report | 2 |
-| `POST` | `/api/reports/:id/export` | Export MD/PDF/JSON | 4 |
+| Method | Path | Purpose | Phase | Status |
+|--------|------|---------|-------|--------|
+| `GET` | `/health` | Liveness | 0 | Implemented |
+| `POST` | `/api/videos/upload` | Upload captured media segment | 1 | Implemented |
+| `GET` | `/api/tasks/:taskId` | Task progress | 1 | Implemented |
+| `GET` | `/api/videos/:videoId/analysis` | Single-video result | 1 | Implemented |
+| `POST` | `/api/creator-analysis` | Start creator batch job | 2 | Planned |
+| `GET` | `/api/reports/:creatorId` | Creator-level report | 2 | Planned |
+| `POST` | `/api/reports/:id/export` | Export MD/PDF/JSON | 4 | Planned |
 
 ## Create Creator Analysis
 

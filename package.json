@@ -2,10 +2,15 @@
   "name": "creator-dna",
   "private": true,
   "packageManager": "pnpm@9.15.4",
+  "pnpm": {
+    "overrides": {
+      "@vitejs/plugin-react": "4.3.4"
+    }
+  },
   "scripts": {
     "dev:extension": "pnpm --filter extension dev",
     "build": "pnpm -r build",
     "build:extension": "pnpm --filter extension build",
-    "typecheck": "pnpm --filter @creator-dna/shared-types exec tsc --noEmit"
+    "typecheck": "pnpm --filter @creator-dna/shared-types exec tsc --noEmit && pnpm --filter @creator-dna/platform-core exec tsc --noEmit"
   }
 }

@@ -9,6 +9,7 @@
     "zip": "wxt zip"
   },
   "dependencies": {
+    "@creator-dna/platform-core": "workspace:*",
     "@creator-dna/shared-types": "workspace:*"
   },
   "devDependencies": {

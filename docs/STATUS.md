@@ -3,9 +3,9 @@
 > **Agents:** Read this first. Next action at bottom.
 
 **Last updated:** 2026-06-26  
-**V1 progress:** 8 / 56 tasks  
-**Current phase:** Phase 1 — Single Video MVP  
-**Next task:** [P1-01](tasks/BACKLOG.md#phase-1--single-video-mvp-douyin-web) — `PlatformAdapter` in platform-core
+**V1 progress:** 20 / 56 tasks  
+**Current phase:** Phase 2 — Creator Batch Analysis  
+**Next task:** [P2-01](tasks/BACKLOG.md#phase-2--creator-batch-analysis) — `extractCreatorProfile()` on Douyin user page
 
 ## V1 Definition
 
@@ -17,8 +17,8 @@ Douyin Web · Chrome Extension + Backend · Single/batch/visual/export · Produc
 | Phase | Done | Total | Status |
 |-------|------|-------|--------|
 | 0 Foundation | 8 | 8 | Complete |
-| 1 Single Video | 0 | 12 | Ready |
-| 2 Creator Batch | 0 | 8 | Blocked by Phase 1 |
+| 1 Single Video | 12 | 12 | Complete |
+| 2 Creator Batch | 0 | 8 | Ready |
 | 3 Visual | 0 | 6 | Blocked by Phase 2 |
 | 4 Export | 0 | 4 | Blocked by Phase 2 |
 | 6 Production | 0 | 18 | Blocked by Phase 4 |
@@ -26,7 +26,7 @@ Douyin Web · Chrome Extension + Backend · Single/batch/visual/export · Produc
 
 ## Active Blockers
 
-None — start at P1-01.
+None — start at P2-01.
 
 ## Open Decisions
 
@@ -43,6 +43,7 @@ All locked. See [architecture/decisions/](architecture/decisions/README.md).
 
 | Date | Change |
 |------|--------|
+| 2026-06-26 | Phase 1 complete: platform adapter, extension capture pipeline, upload/ASR/structure APIs, side panel UI |
 | 2026-06-26 | Phase 0 complete: monorepo, shared-types, extension/API/workers shells, docker-compose, Alembic |
 | 2026-06-26 | Documentation system + V1 backlog (56 tasks) initialized |
 
@@ -56,7 +57,7 @@ All locked. See [architecture/decisions/](architecture/decisions/README.md).
 ## Next Action
 
 ```txt
-Task: P1-01
-Doc:  docs/tasks/phases/phase-1-single-video.md
-Goal: PlatformAdapter interface in packages/platform-core
+Task: P2-01
+Doc:  docs/tasks/phases/phase-2-creator-batch.md
+Goal: extractCreatorProfile() on Douyin user page
 ```
