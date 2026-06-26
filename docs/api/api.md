@@ -50,7 +50,7 @@ POST /api/videos/upload
 Content-Type: multipart/form-data
 ```
 
-Fields: `file`, `videoUrl`, `creatorId` (optional)
+Fields: `file`, `videoUrl`, `title` (optional), `platformVideoId` (optional), `videoId` (optional, batch), `creatorId` (optional), `batchTaskId` (optional)
 
 ## Task Progress
 
