@@ -28,6 +28,25 @@ The core principle is:
 
 ---
 
+## Documentation System
+
+This file is the **project constitution** (schemas, APIs, compliance, coding rules). For day-to-day development, use the layered docs under `docs/`:
+
+| Doc | Purpose |
+|-----|---------|
+| [docs/STATUS.md](./docs/STATUS.md) | One-page progress; next task ID |
+| [docs/README.md](./docs/README.md) | Entry point and reading order |
+| [docs/development/agent-playbook.md](./docs/development/agent-playbook.md) | How AI agents should implement features |
+| [docs/tasks/BACKLOG.md](./docs/tasks/BACKLOG.md) | V1 task list (56 tasks); update on completion |
+| [docs/product/launch-criteria.md](./docs/product/launch-criteria.md) | Production launch gates |
+| [docs/architecture/](./docs/architecture/) | System design, ADRs, module ownership |
+| [docs/operations/](./docs/operations/) | Deployment, security, observability |
+| [docs/product/vision-and-outcomes.md](./docs/product/vision-and-outcomes.md) | Goals and V1 scope |
+
+When completing a task, update `docs/tasks/BACKLOG.md` and `docs/STATUS.md`.
+
+---
+
 ## Product Positioning
 
 CreatorDNA is designed for:

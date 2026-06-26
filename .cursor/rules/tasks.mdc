@@ -1,0 +1,32 @@
+---
+description: Backlog and task doc update format
+globs: docs/tasks/**
+alwaysApply: false
+---
+
+# Task Doc Rules
+
+## Status Values
+
+Only: `todo` | `in_progress` | `blocked` | `done` | `deferred`
+
+## Task ID Format
+
+`P{phase}-{seq}` e.g. P1-02, P6-18
+
+## When Completing a Task
+
+1. Set status `done` in [BACKLOG.md](../../docs/tasks/BACKLOG.md)
+2. Check boxes in matching [phases/phase-*.md](../../docs/tasks/phases/)
+3. Update [STATUS.md](../../docs/STATUS.md) progress counts
+4. If API/schema changed → [api/schemas.md](../../docs/api/schemas.md)
+
+## Picking Work
+
+- Lowest incomplete V1 phase first (0 → 1 → 2 → 3 → 4 → 6)
+- Skip `blocked` and `deferred` tasks
+- Do not start Phase 5 without explicit user request
+
+## V1 Complete
+
+P6-18 Launch Review `done` + all [launch-criteria.md](../../docs/product/launch-criteria.md) checked.

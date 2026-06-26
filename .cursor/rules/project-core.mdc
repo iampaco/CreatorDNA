@@ -1,0 +1,35 @@
+---
+description: CreatorDNA core context, V1 scope, doc entry points, compliance red lines
+alwaysApply: true
+---
+
+# CreatorDNA Core
+
+## Start Here
+
+1. [docs/STATUS.md](../docs/STATUS.md) — next task
+2. [docs/tasks/BACKLOG.md](../docs/tasks/BACKLOG.md) — pick unblocked `todo`
+3. [docs/development/agent-playbook.md](../docs/development/agent-playbook.md)
+
+Constitution: [AGENTS.md](../AGENTS.md). V1 launch gates: [docs/product/launch-criteria.md](../docs/product/launch-criteria.md).
+
+## V1 Scope
+
+- **Platform:** Douyin Web only (`douyin-web.adapter.ts`)
+- **Product:** Chrome extension + FastAPI + Celery workers
+- **Includes:** Single video → batch → visual → export → production hardening (56 tasks)
+- **Excludes:** Phase 5 (multi-platform, teams, comparison) unless user explicitly requests
+
+V1 complete = task **P6-18** `done`.
+
+## Non-Negotiable
+
+- User-triggered capture only — no silent recording
+- Structure over copying — no script clones
+- Browser-assisted — not headless crawling
+- Validate all LLM JSON before DB save
+- Update BACKLOG + STATUS when finishing a task
+
+## Decisions (locked)
+
+See [docs/architecture/decisions/](../docs/architecture/decisions/): Douyin, Celery+Redis, OpenAI STT, MinIO/R2/S3.

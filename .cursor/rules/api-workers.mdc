@@ -1,0 +1,36 @@
+---
+description: FastAPI, Celery workers, logging, idempotent jobs
+globs: apps/api/**,workers/**
+alwaysApply: false
+---
+
+# API & Workers Rules
+
+## Stack
+
+FastAPI + Pydantic (API). Celery + Redis (workers). Python type hints required.
+
+## Patterns
+
+- Routers thin; logic in `services/`
+- Pydantic schemas mirror `packages/shared-types`
+- Celery tasks idempotent — retries must not duplicate DB rows
+- Wrap ffmpeg and external AI calls with error handling
+
+## Logging (required fields when available)
+
+`request_id`, `task_id`, `video_id`, `step`, `model`, `duration_ms`, `retry_count`
+
+## AI Output
+
+Parse → validate → normalize → save. Store `asr_model`, prompt version, timestamp. Keep `raw_analysis` for debug.
+
+## Auth
+
+Staging/prod: require `Authorization` header (P6-01). See [security.md](../../docs/operations/security.md).
+
+## Docs
+
+- [api/schemas.md](../../docs/api/schemas.md)
+- [ai-pipeline/pipeline.md](../../docs/ai-pipeline/pipeline.md)
+- [ADR 002](../../docs/architecture/decisions/002-task-queue-celery.md)

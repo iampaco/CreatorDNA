@@ -1,0 +1,33 @@
+---
+description: WXT extension, Douyin adapter, capture compliance
+globs: apps/extension/**
+alwaysApply: false
+---
+
+# Extension Rules
+
+## Stack
+
+WXT + React + TypeScript + Manifest V3. Side panel is primary report UI.
+
+## File Placement
+
+- DOM / URLs → `platform-adapters/douyin-web.adapter.ts` only
+- Orchestration → `entrypoints/background.ts`
+- Recording → `entrypoints/offscreen/` (user gesture required)
+- UI → `entrypoints/sidepanel/`, `popup/`
+
+## PlatformAdapter
+
+Implement interface from `packages/platform-core`. Layered extraction: URL → anchors → semantic DOM → selectors → manual fallback.
+
+## Capture
+
+- `tabCapture` / `MediaRecorder` only after explicit Analyze click
+- Never auto-start recording on page load or navigation
+- Host permission: `*.douyin.com` for V1
+
+## Docs
+
+- [compliance.md](../../docs/compliance/compliance.md)
+- [ADR 001](../../docs/architecture/decisions/001-mvp-platform-douyin.md)
