@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.output/
+.wxt/
+.next/
+out/
+build/
+*.egg-info/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# IDE & OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs & temp
+*.log
+tmp/
+temp/
+.cache/
+
+# Test & coverage
+coverage/
+.pytest_cache/
+.nyc_output/
+
+# Media & storage (analysis artifacts)
+*.webm
+*.mp4
+uploads/
+storage/
