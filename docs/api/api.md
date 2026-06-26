@@ -22,8 +22,8 @@ Authorization: Bearer <api_key_or_jwt>
 | `POST` | `/api/videos/upload` | Upload captured media segment | 1 | Implemented |
 | `GET` | `/api/tasks/:taskId` | Task progress | 1 | Implemented |
 | `GET` | `/api/videos/:videoId/analysis` | Single-video result | 1 | Implemented |
-| `POST` | `/api/creator-analysis` | Start creator batch job | 2 | Planned |
-| `GET` | `/api/reports/:creatorId` | Creator-level report | 2 | Planned |
+| `POST` | `/api/creator-analysis` | Start creator batch job | 2 | Implemented |
+| `GET` | `/api/reports/:creatorId` | Creator-level report | 2 | Implemented |
 | `POST` | `/api/reports/:id/export` | Export MD/PDF/JSON | 4 | Planned |
 
 ## Create Creator Analysis

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from apps.api.config import get_settings
-from apps.api.routers import health, tasks, videos
+from apps.api.routers import creators, health, tasks, videos
 
 settings = get_settings()
 
@@ -20,3 +20,4 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(videos.router)
 app.include_router(tasks.router)
+app.include_router(creators.router)

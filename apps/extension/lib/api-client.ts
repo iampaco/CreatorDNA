@@ -1,4 +1,4 @@
-import type { AnalysisTask, VideoStyleAnalysis } from "@creator-dna/shared-types";
+import type { AnalysisTask, CreatorReport, CreatorVideoMeta, VideoStyleAnalysis } from "@creator-dna/shared-types";
 
 const DEFAULT_API_BASE = "http://localhost:8000";
 
@@ -12,6 +12,9 @@ export async function uploadVideoSegment(params: {
   videoUrl: string;
   title?: string;
   platformVideoId?: string;
+  videoId?: string;
+  creatorId?: string;
+  batchTaskId?: string;
 }): Promise<{ videoId: string; taskId: string }> {
   const apiBase = await getApiBaseUrl();
   const form = new FormData();
@@ -19,6 +22,9 @@ export async function uploadVideoSegment(params: {
   form.append("videoUrl", params.videoUrl);
   if (params.title) form.append("title", params.title);
   if (params.platformVideoId) form.append("platformVideoId", params.platformVideoId);
+  if (params.videoId) form.append("videoId", params.videoId);
+  if (params.creatorId) form.append("creatorId", params.creatorId);
+  if (params.batchTaskId) form.append("batchTaskId", params.batchTaskId);
 
   const response = await fetch(`${apiBase}/api/videos/upload`, {
     method: "POST",
@@ -59,4 +65,59 @@ export async function getVideoAnalysis(videoId: string): Promise<{
     transcript?: { fullText: string; language: string };
     analysis?: VideoStyleAnalysis;
   }>;
+}
+
+export async function createCreatorAnalysis(params: {
+  creatorUrl: string;
+  creatorProfile?: {
+    platform: string;
+    displayName?: string;
+    username?: string;
+    profileUrl: string;
+    avatarUrl?: string;
+  };
+  videos: CreatorVideoMeta[];
+  sampleSize: number;
+}): Promise<{
+  taskId: string;
+  creatorId: string;
+  status: string;
+  totalVideos: number;
+  videos: Array<{ videoId: string; videoUrl: string; platformVideoId?: string; title?: string }>;
+}> {
+  const apiBase = await getApiBaseUrl();
+  const response = await fetch(`${apiBase}/api/creator-analysis`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      platform: "douyin",
+      creatorUrl: params.creatorUrl,
+      creatorProfile: params.creatorProfile,
+      videos: params.videos.map((v) => ({
+        videoUrl: v.videoUrl,
+        platformVideoId: v.platformVideoId,
+        title: v.title,
+        description: v.description,
+        likeCount: v.likeCount,
+        commentCount: v.commentCount,
+        collectCount: v.collectCount,
+      })),
+      sampleSize: params.sampleSize,
+    }),
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { detail?: { message?: string } } | null;
+    throw new Error(body?.detail?.message || `Creator analysis failed (${response.status})`);
+  }
+  return response.json();
+}
+
+export async function getCreatorReport(creatorId: string): Promise<CreatorReport> {
+  const apiBase = await getApiBaseUrl();
+  const response = await fetch(`${apiBase}/api/reports/${creatorId}`);
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { detail?: { message?: string } } | null;
+    throw new Error(body?.detail?.message || `Report fetch failed (${response.status})`);
+  }
+  return response.json() as Promise<CreatorReport>;
 }

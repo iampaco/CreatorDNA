@@ -12,7 +12,9 @@ if str(ROOT) not in sys.path:
 
 from apps.api.db.base import Base  # noqa: E402
 from apps.api.db.models import (  # noqa: E402,F401
+    AnalysisTask,
     Creator,
+    CreatorAnalysisTask,
     CreatorReport,
     Transcript,
     Video,

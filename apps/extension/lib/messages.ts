@@ -1,5 +1,7 @@
 import type {
   AnalysisTask,
+  CreatorProfile,
+  CreatorReport,
   CreatorVideoMeta,
   PlatformPageDetection,
   VideoStyleAnalysis,
@@ -13,24 +15,52 @@ export type AnalysisState =
   | "done"
   | "error";
 
+export type AnalysisMode = "single" | "batch";
+
+export interface BatchVideoItem {
+  videoId: string;
+  videoUrl: string;
+  platformVideoId?: string;
+  title?: string;
+  status?: "pending" | "capturing" | "uploading" | "processing" | "done" | "failed";
+}
+
 export interface AnalysisSession {
+  mode?: AnalysisMode;
   state: AnalysisState;
   pageDetection?: PlatformPageDetection;
   videoMeta?: CreatorVideoMeta;
+  creatorProfile?: CreatorProfile;
+  videoList?: CreatorVideoMeta[];
+  sampleSize?: number;
   taskId?: string;
   videoId?: string;
+  creatorId?: string;
+  batchVideos?: BatchVideoItem[];
+  currentVideoIndex?: number;
   progress?: number;
   currentStep?: string;
+  finishedVideos?: number;
+  totalVideos?: number;
   errorCode?: string;
   errorMessage?: string;
   analysis?: VideoStyleAnalysis;
+  creatorReport?: CreatorReport;
   updatedAt: string;
 }
 
 export type ExtensionMessage =
-  | { type: "content:page-update"; detection: PlatformPageDetection; videoMeta: CreatorVideoMeta | null }
+  | {
+      type: "content:page-update";
+      detection: PlatformPageDetection;
+      videoMeta: CreatorVideoMeta | null;
+      creatorProfile?: CreatorProfile | null;
+      videoList?: CreatorVideoMeta[] | null;
+    }
+  | { type: "content:extract-videos"; limit: number }
   | { type: "sidepanel:get-session" }
   | { type: "sidepanel:start-analysis" }
+  | { type: "sidepanel:start-batch"; sampleSize: number }
   | { type: "sidepanel:reset" }
   | { type: "offscreen:start-capture"; streamId: string; maxDurationMs: number }
   | { type: "offscreen:stop-capture" }

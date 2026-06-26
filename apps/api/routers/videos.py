@@ -19,6 +19,9 @@ async def upload_video(
     videoUrl: str = Form(...),
     title: str | None = Form(None),
     platformVideoId: str | None = Form(None),
+    videoId: str | None = Form(None),
+    creatorId: str | None = Form(None),
+    batchTaskId: str | None = Form(None),
     db: Session = Depends(get_db),
 ) -> UploadVideoResponse:
     service = VideoService(db)
@@ -28,6 +31,9 @@ async def upload_video(
             video_url=videoUrl,
             title=title,
             platform_video_id=platformVideoId,
+            video_id=uuid.UUID(videoId) if videoId else None,
+            creator_id=uuid.UUID(creatorId) if creatorId else None,
+            batch_task_id=uuid.UUID(batchTaskId) if batchTaskId else None,
         )
     except ValueError as exc:
         code = str(exc)
@@ -35,6 +41,11 @@ async def upload_video(
             raise HTTPException(
                 status_code=400,
                 detail=ApiErrorResponse(error=code, message="Only Douyin Web is supported in V1.").model_dump(),
+            ) from exc
+        if code in ("video_not_found", "video_already_uploaded", "batch_task_not_found"):
+            raise HTTPException(
+                status_code=400,
+                detail=ApiErrorResponse(error=code, message=str(exc)).model_dump(),
             ) from exc
         raise HTTPException(
             status_code=400,

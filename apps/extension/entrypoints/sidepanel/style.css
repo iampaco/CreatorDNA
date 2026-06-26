@@ -118,3 +118,63 @@ button.secondary {
   margin: 0;
   padding-left: 18px;
 }
+
+.sample-size {
+  margin-bottom: 10px;
+}
+
+.sample-label {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.sample-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+button.sample {
+  background: #e5e7eb;
+  color: #111;
+  padding: 6px 12px;
+}
+
+button.sample.active {
+  background: #111827;
+  color: #fff;
+}
+
+.video-preview {
+  margin: 8px 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: #4b5563;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.meta-count {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.batch-progress {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.report-markdown {
+  margin-top: 10px;
+}
+
+.markdown-preview {
+  white-space: pre-wrap;
+  font-size: 11px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #f9fafb;
+  padding: 8px;
+  border-radius: 6px;
+}

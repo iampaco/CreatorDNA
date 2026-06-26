@@ -153,6 +153,12 @@ def analyze_video_task(self, task_id: str) -> dict:
             db.add(style)
             _update_task(db, task, status="completed", progress=100, current_step="分析完成")
             db.commit()
+
+            if task.creator_analysis_task_id:
+                from workers.tasks.analyze_creator import update_batch_progress
+
+                update_batch_progress(db, task.creator_analysis_task_id)
+
             return {"status": "completed", "videoId": str(video.id)}
     finally:
         db.close()

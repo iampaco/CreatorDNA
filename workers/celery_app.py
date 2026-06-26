@@ -8,7 +8,7 @@ celery_app = Celery(
     "creator_dna",
     broker=redis_url,
     backend=redis_url,
-    include=["workers.tasks.stub", "workers.tasks.analyze_video"],
+    include=["workers.tasks.stub", "workers.tasks.analyze_video", "workers.tasks.analyze_creator"],
 )
 
 celery_app.conf.update(

@@ -34,6 +34,63 @@ function readText(selectors: string[]): string | undefined {
   return undefined;
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function scrollToLoadMore(targetCount: number): Promise<void> {
+  let lastHeight = 0;
+  let stableRounds = 0;
+
+  for (let i = 0; i < 30; i++) {
+    const anchors = document.querySelectorAll<HTMLAnchorElement>("a[href*='/video/']");
+    const unique = new Set<string>();
+    for (const anchor of anchors) {
+      const match = anchor.href.match(VIDEO_PATH);
+      if (match) unique.add(match[1]);
+    }
+    if (unique.size >= targetCount) return;
+
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
+    await sleep(600);
+
+    const height = document.documentElement.scrollHeight;
+    if (height === lastHeight) {
+      stableRounds += 1;
+      if (stableRounds >= 3) return;
+    } else {
+      stableRounds = 0;
+      lastHeight = height;
+    }
+  }
+}
+
+function extractVideoFromAnchor(anchor: HTMLAnchorElement): CreatorVideoMeta | null {
+  const href = anchor.href;
+  const match = href.match(VIDEO_PATH);
+  if (!match) return null;
+
+  const card = anchor.closest("li, div");
+  const title =
+    anchor.getAttribute("title") ||
+    anchor.getAttribute("aria-label") ||
+    card?.querySelector("img")?.getAttribute("alt") ||
+    anchor.textContent?.trim() ||
+    undefined;
+
+  const coverUrl = card?.querySelector("img")?.getAttribute("src") || undefined;
+  const likeText = card ? readText(["[data-e2e='video-like-count']", ".count", ".like-count"]) : undefined;
+
+  return {
+    platform: "douyin",
+    videoUrl: href.split("?")[0],
+    platformVideoId: match[1],
+    title: title || undefined,
+    coverUrl: coverUrl || undefined,
+    likeCount: parseCount(likeText),
+  };
+}
+
 export class DouyinWebAdapter implements PlatformAdapter {
   readonly platform = "douyin" as const;
 
@@ -54,15 +111,23 @@ export class DouyinWebAdapter implements PlatformAdapter {
 
     const match = detection.url.match(USER_PATH);
     const username = match?.[1];
+    const displayName =
+      readText([
+        "[data-e2e='user-title']",
+        "[data-e2e='user-name']",
+        "h1",
+        ".user-title",
+        ".nickname",
+      ]) || readMetaContent("og:title");
 
     return {
       platform: this.platform,
-      displayName:
-        readMetaContent("og:title") ||
-        readText(["[data-e2e='user-title']", "h1", ".user-title"]),
+      displayName: displayName?.replace(/的主页.*$/, "").trim() || displayName,
       username,
       profileUrl: detection.url.split("?")[0],
-      avatarUrl: readMetaContent("og:image"),
+      avatarUrl:
+        readMetaContent("og:image") ||
+        document.querySelector<HTMLImageElement>("[data-e2e='user-avatar'] img, .avatar img")?.src,
     };
   }
 
@@ -70,23 +135,19 @@ export class DouyinWebAdapter implements PlatformAdapter {
     const detection = this.detectPage();
     if (detection.pageType !== "creator") return [];
 
+    if (limit > 0) {
+      await scrollToLoadMore(limit);
+    }
+
     const anchors = Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href*='/video/']"));
     const seen = new Set<string>();
     const videos: CreatorVideoMeta[] = [];
 
     for (const anchor of anchors) {
-      const href = anchor.href;
-      const match = href.match(VIDEO_PATH);
-      if (!match || seen.has(match[1])) continue;
-      seen.add(match[1]);
-
-      videos.push({
-        platform: this.platform,
-        videoUrl: href.split("?")[0],
-        platformVideoId: match[1],
-        title: anchor.getAttribute("title") || anchor.textContent?.trim() || undefined,
-      });
-
+      const meta = extractVideoFromAnchor(anchor);
+      if (!meta?.platformVideoId || seen.has(meta.platformVideoId)) continue;
+      seen.add(meta.platformVideoId);
+      videos.push(meta);
       if (videos.length >= limit) break;
     }
 

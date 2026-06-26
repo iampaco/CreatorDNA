@@ -15,13 +15,13 @@ Post-launch work: [Phase 5](#phase-5--post-launch) (not counted in V1 progress).
 |-------|------|----|----------|
 | 0 | [Foundation](./phases/phase-0-foundation.md) | Yes | 8 / 8 |
 | 1 | [Single Video](./phases/phase-1-single-video.md) | Yes | 12 / 12 |
-| 2 | [Creator Batch](./phases/phase-2-creator-batch.md) | Yes | 0 / 8 |
+| 2 | [Creator Batch](./phases/phase-2-creator-batch.md) | Yes | 8 / 8 |
 | 3 | [Visual Analysis](./phases/phase-3-visual.md) | Yes | 0 / 6 |
 | 4 | [Export](./phases/phase-4-export.md) | Yes | 0 / 4 |
 | 6 | [Production](./phases/phase-6-production.md) | Yes | 0 / 18 |
 | 5 | [Platform (post-launch)](./phases/phase-5-platform.md) | No | 0 / 7 |
 
-**V1 total: 20 / 56**
+**V1 total: 28 / 56**
 
 ---
 
@@ -65,14 +65,14 @@ Post-launch work: [Phase 5](#phase-5--post-launch) (not counted in V1 progress).
 
 | ID | Task | Acceptance | Status | Depends on |
 |----|------|------------|--------|------------|
-| P2-01 | `extractCreatorProfile()` | Profile fields on Douyin user page | `todo` | P1-02 |
-| P2-02 | `extractVideoList(limit)` + scroll | Returns N videos from visible DOM | `todo` | P2-01 |
-| P2-03 | `POST /api/creator-analysis` | Returns taskId; job queued | `todo` | P1-09 |
-| P2-04 | ANALYZE_CREATOR fan-out | Per-video jobs; progress counters update | `todo` | P2-03 |
-| P2-05 | Aggregation layer | Stats computed without raw transcript dump | `todo` | P1-08 |
-| P2-06 | GENERATE_CREATOR_REPORT worker | MD + JSON in `creator_reports` | `todo` | P2-05, P0-08 |
-| P2-07 | Side panel batch UI | Progress bar + creator report view | `todo` | P2-06 |
-| P2-08 | Batch E2E | e2e-checklist Test B passes (10 videos) | `todo` | P2-07 |
+| P2-01 | `extractCreatorProfile()` | Profile fields on Douyin user page | `done` | P1-02 |
+| P2-02 | `extractVideoList(limit)` + scroll | Returns N videos from visible DOM | `done` | P2-01 |
+| P2-03 | `POST /api/creator-analysis` | Returns taskId; job queued | `done` | P1-09 |
+| P2-04 | ANALYZE_CREATOR fan-out | Per-video jobs; progress counters update | `done` | P2-03 |
+| P2-05 | Aggregation layer | Stats computed without raw transcript dump | `done` | P1-08 |
+| P2-06 | GENERATE_CREATOR_REPORT worker | MD + JSON in `creator_reports` | `done` | P2-05, P0-08 |
+| P2-07 | Side panel batch UI | Progress bar + creator report view | `done` | P2-06 |
+| P2-08 | Batch E2E | e2e-checklist Test B passes (10 videos) | `done` | P2-07 |
 
 ---
 
@@ -164,4 +164,4 @@ See [architecture/decisions/](../architecture/decisions/README.md).
 |------|--------|
 | 2026-06-26 | Initial backlog |
 | 2026-06-26 | V1 restructure: Phase 6, Douyin lock, Phase 4/5 split, 56 V1 tasks |
-| 2026-06-26 | Phase 1 complete (P1-01–P1-12): single-video MVP pipeline |
+| 2026-06-26 | Phase 2 complete (P2-01–P2-08): creator batch analysis pipeline |

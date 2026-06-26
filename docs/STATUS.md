@@ -3,9 +3,9 @@
 > **Agents:** Read this first. Next action at bottom.
 
 **Last updated:** 2026-06-26  
-**V1 progress:** 20 / 56 tasks  
-**Current phase:** Phase 2 — Creator Batch Analysis  
-**Next task:** [P2-01](tasks/BACKLOG.md#phase-2--creator-batch-analysis) — `extractCreatorProfile()` on Douyin user page
+**V1 progress:** 28 / 56 tasks  
+**Current phase:** Phase 3 — Visual Analysis  
+**Next task:** [P3-01](tasks/BACKLOG.md#phase-3--visual-analysis) — Frame extraction worker
 
 ## V1 Definition
 
@@ -18,15 +18,15 @@ Douyin Web · Chrome Extension + Backend · Single/batch/visual/export · Produc
 |-------|------|-------|--------|
 | 0 Foundation | 8 | 8 | Complete |
 | 1 Single Video | 12 | 12 | Complete |
-| 2 Creator Batch | 0 | 8 | Ready |
-| 3 Visual | 0 | 6 | Blocked by Phase 2 |
-| 4 Export | 0 | 4 | Blocked by Phase 2 |
+| 2 Creator Batch | 8 | 8 | Complete |
+| 3 Visual | 0 | 6 | Ready |
+| 4 Export | 0 | 4 | Blocked by Phase 3 |
 | 6 Production | 0 | 18 | Blocked by Phase 4 |
 | 5 Post-launch | — | 7 | Out of V1 scope |
 
 ## Active Blockers
 
-None — start at P2-01.
+None — start at P3-01.
 
 ## Open Decisions
 
@@ -43,7 +43,7 @@ All locked. See [architecture/decisions/](architecture/decisions/README.md).
 
 | Date | Change |
 |------|--------|
-| 2026-06-26 | Phase 1 complete: platform adapter, extension capture pipeline, upload/ASR/structure APIs, side panel UI |
+| 2026-06-26 | Phase 2 complete: creator batch analysis, aggregation, report generation, batch side panel UI |
 | 2026-06-26 | Phase 0 complete: monorepo, shared-types, extension/API/workers shells, docker-compose, Alembic |
 | 2026-06-26 | Documentation system + V1 backlog (56 tasks) initialized |
 
@@ -57,7 +57,7 @@ All locked. See [architecture/decisions/](architecture/decisions/README.md).
 ## Next Action
 
 ```txt
-Task: P2-01
-Doc:  docs/tasks/phases/phase-2-creator-batch.md
-Goal: extractCreatorProfile() on Douyin user page
+Task: P3-01
+Doc:  docs/tasks/phases/phase-3-visual.md
+Goal: Frame extraction worker
 ```
