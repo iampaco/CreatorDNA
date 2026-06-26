@@ -83,7 +83,7 @@ curl http://localhost:8000/ready
 | Issue | Fix |
 |-------|-----|
 | Extension not detecting Douyin | Check `host_permissions` for `*.douyin.com` in manifest |
-| Upload 401 | Set API key in extension storage / env (P6-01) |
+| Upload 401 | Set API key in side panel **连接设置** or disable auth locally |
 | Worker not processing | Redis up? `docker compose ... ps` shows redis healthy |
 | Alembic connection refused | Start Postgres: `docker compose -f infra/docker-compose.yml up -d` |
 | ffmpeg not found | Install on host or use worker Docker image with ffmpeg |
