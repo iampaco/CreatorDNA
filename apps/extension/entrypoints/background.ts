@@ -110,6 +110,20 @@ async function startPolling(taskId: string, videoId: string): Promise<void> {
   await pollSingleTask(taskId, videoId);
 }
 
+const SAMPLE_SIZES = [10, 20, 50] as const;
+
+async function setSampleSize(sampleSize: number): Promise<ExtensionResponse> {
+  const session = await loadSession();
+  if (session.state !== "idle" && session.state !== "done" && session.state !== "error") {
+    return { ok: false, error: "分析正在进行中，无法更改样本数量" };
+  }
+  if (!SAMPLE_SIZES.includes(sampleSize as (typeof SAMPLE_SIZES)[number])) {
+    return { ok: false, error: "无效的样本数量" };
+  }
+  await patchSession({ sampleSize });
+  return { ok: true, session: await loadSession() };
+}
+
 async function pollSingleTask(taskId: string, videoId: string): Promise<void> {
   try {
     const task = await getTaskProgress(taskId);
@@ -119,6 +133,7 @@ async function pollSingleTask(taskId: string, videoId: string): Promise<void> {
       videoId,
       progress: task.progress,
       currentStep: task.currentStep,
+      captureStartedAt: undefined,
     });
 
     if (task.status === "completed") {
@@ -130,6 +145,7 @@ async function pollSingleTask(taskId: string, videoId: string): Promise<void> {
         currentStep: "分析完成",
         analysis: result.analysis,
         visualAnalysis: result.visualAnalysis,
+        captureStartedAt: undefined,
       });
       return;
     }
@@ -137,7 +153,7 @@ async function pollSingleTask(taskId: string, videoId: string): Promise<void> {
     if (task.status === "failed") {
       stopPolling();
       const mapped = mapTaskError(task.error, task.currentStep);
-      await patchSession({ state: "error", ...mapped });
+      await patchSession({ state: "error", captureStartedAt: undefined, ...mapped });
     }
   } catch (error) {
     stopPolling();
@@ -185,7 +201,7 @@ async function pollBatchTask(batchTaskId: string, creatorId: string): Promise<vo
     if (task.status === "failed") {
       stopPolling();
       const mapped = mapTaskError(task.error, task.currentStep);
-      await patchSession({ state: "error", ...mapped });
+      await patchSession({ state: "error", captureStartedAt: undefined, ...mapped });
     }
   } catch (error) {
     stopPolling();
@@ -222,7 +238,7 @@ async function captureCurrentTab(): Promise<Blob | null> {
 
 async function processNextBatchVideo(): Promise<void> {
   const session = await loadSession();
-  if (session.mode !== "batch" || !session.batchVideos || session.batchTaskId == null) return;
+  if (session.mode !== "batch" || !session.batchVideos || session.taskId == null) return;
 
   const index = session.currentVideoIndex ?? 0;
   if (index >= session.batchVideos.length) {
@@ -232,7 +248,7 @@ async function processNextBatchVideo(): Promise<void> {
       progress: 90,
     });
     if (session.creatorId) {
-      await startBatchPolling(session.batchTaskId, session.creatorId);
+      await startBatchPolling(session.taskId, session.creatorId);
     }
     return;
   }
@@ -248,6 +264,7 @@ async function processNextBatchVideo(): Promise<void> {
     batchVideos,
     currentStep: `录制视频 ${index + 1}/${session.batchVideos.length}`,
     progress: Math.round((index / session.batchVideos.length) * 80),
+    captureStartedAt: new Date().toISOString(),
   });
 
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
@@ -271,7 +288,11 @@ async function processNextBatchVideo(): Promise<void> {
     return;
   }
 
-  await patchSession({ state: "capturing", currentStep: `录制视频 ${index + 1}/${session.batchVideos.length}` });
+  await patchSession({
+    state: "capturing",
+    currentStep: `录制视频 ${index + 1}/${session.batchVideos.length}`,
+    captureStartedAt: new Date().toISOString(),
+  });
   const blob = await captureCurrentTab();
   if (!blob) {
     const mapped = mapTaskError("capture_denied");
@@ -285,7 +306,7 @@ async function processNextBatchVideo(): Promise<void> {
 async function handleBatchCaptureComplete(blob: Blob, index: number): Promise<void> {
   const session = await loadSession();
   const current = session.batchVideos?.[index];
-  if (!current || !session.batchTaskId || !session.creatorId) {
+  if (!current || !session.taskId || !session.creatorId) {
     await patchSession({
       state: "error",
       errorCode: "upload_failed",
@@ -302,6 +323,7 @@ async function handleBatchCaptureComplete(blob: Blob, index: number): Promise<vo
     state: "uploading",
     batchVideos: uploadingVideos,
     currentStep: `上传视频 ${index + 1}/${session.batchVideos?.length ?? 0}`,
+    captureStartedAt: undefined,
   });
 
   try {
@@ -312,7 +334,7 @@ async function handleBatchCaptureComplete(blob: Blob, index: number): Promise<vo
       platformVideoId: current.platformVideoId,
       videoId: current.videoId,
       creatorId: session.creatorId,
-      batchTaskId: session.batchTaskId,
+      batchTaskId: session.taskId,
     });
 
     const processingVideos = (await loadSession()).batchVideos?.map((v, i) =>
@@ -322,6 +344,7 @@ async function handleBatchCaptureComplete(blob: Blob, index: number): Promise<vo
       state: "processing",
       batchVideos: processingVideos,
       currentStep: `分析视频 ${index + 1}/${session.batchVideos?.length ?? 0}`,
+      captureStartedAt: undefined,
     });
 
     const ok = await waitForVideoTask(taskId);
@@ -365,6 +388,7 @@ async function handleCaptureComplete(blob: Blob): Promise<void> {
     state: "uploading",
     currentStep: "上传录制片段",
     progress: 10,
+    captureStartedAt: undefined,
   });
 
   try {
@@ -381,6 +405,7 @@ async function handleCaptureComplete(blob: Blob): Promise<void> {
       taskId,
       currentStep: "处理中",
       progress: 20,
+      captureStartedAt: undefined,
     });
     await startPolling(taskId, videoId);
   } catch (error) {
@@ -412,6 +437,7 @@ async function startAnalysis(): Promise<ExtensionResponse> {
     creatorReport: undefined,
     progress: 0,
     currentStep: "等待录制权限",
+    captureStartedAt: new Date().toISOString(),
   });
 
   try {
@@ -550,6 +576,9 @@ export default defineBackground(() => {
         case "sidepanel:start-batch":
           return startBatchAnalysis(message.sampleSize);
 
+        case "sidepanel:set-sample-size":
+          return setSampleSize(message.sampleSize);
+
         case "sidepanel:reset":
           stopPolling();
           pageLoadResolver = undefined;
@@ -569,7 +598,7 @@ export default defineBackground(() => {
             batchCaptureResolver = undefined;
           } else {
             const mapped = mapTaskError(message.code, message.message);
-            await patchSession({ state: "error", ...mapped });
+            await patchSession({ state: "error", captureStartedAt: undefined, ...mapped });
           }
           return { ok: true };
         }

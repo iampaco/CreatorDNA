@@ -1,4 +1,4 @@
-import type { AnalysisSession } from "../../lib/messages";
+import type { AnalysisSession, BatchVideoItem, ExtensionMessage, ExtensionResponse } from "../../lib/messages";
 import {
   createReportExport,
   downloadExportFile,
@@ -6,6 +6,9 @@ import {
 } from "../../lib/api-client";
 import { downloadJson, downloadText } from "../../lib/download";
 import "./style.css";
+
+const CAPTURE_MAX_SECONDS = 60;
+const STORAGE_SESSION_KEY = "analysisSession";
 
 const USER_ERROR_MESSAGES: Record<string, string> = {
   capture_denied: "录制权限被拒绝。请在浏览器提示中允许标签页捕获后重试。",
@@ -16,7 +19,21 @@ const USER_ERROR_MESSAGES: Record<string, string> = {
   unsupported_platform: "当前页面不支持分析。请打开抖音视频页或创作者主页。",
 };
 
+const BATCH_STATUS_LABELS: Record<NonNullable<BatchVideoItem["status"]>, string> = {
+  pending: "等待",
+  capturing: "录制中",
+  uploading: "上传中",
+  processing: "分析中",
+  done: "完成",
+  failed: "失败",
+};
+
 const SAMPLE_SIZES = [10, 20, 50] as const;
+
+let lastRenderedAt: string | undefined;
+let countdownTimer: ReturnType<typeof setInterval> | undefined;
+let apiKeySaveTimer: ReturnType<typeof setTimeout> | undefined;
+let subtitleEl: HTMLParagraphElement | undefined;
 
 function getErrorMessage(session: AnalysisSession): string {
   if (session.errorMessage) return session.errorMessage;
@@ -37,6 +54,62 @@ function el<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
+function showFeedback(message: string, type: "error" | "info" = "error"): void {
+  const banner = document.getElementById("feedback-banner");
+  if (!banner) return;
+  banner.textContent = message;
+  banner.className = `feedback-banner ${type}`;
+  banner.hidden = false;
+}
+
+function clearFeedback(): void {
+  const banner = document.getElementById("feedback-banner");
+  if (!banner) return;
+  banner.textContent = "";
+  banner.hidden = true;
+  banner.className = "feedback-banner";
+}
+
+async function runAction(message: ExtensionMessage): Promise<ExtensionResponse | undefined> {
+  try {
+    const response = (await browser.runtime.sendMessage(message)) as ExtensionResponse | undefined;
+    if (response && "ok" in response && !response.ok) {
+      showFeedback(response.error, "error");
+    } else if (response?.ok) {
+      clearFeedback();
+    }
+    return response;
+  } catch {
+    showFeedback("操作失败，请确认扩展后台正在运行。", "error");
+    return undefined;
+  }
+}
+
+function clearCountdown(): void {
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+    countdownTimer = undefined;
+  }
+}
+
+function syncCountdown(session: AnalysisSession): void {
+  clearCountdown();
+  if (session.state !== "capturing" || !session.captureStartedAt) return;
+
+  const countdownEl = document.getElementById("recording-countdown");
+  if (!countdownEl) return;
+
+  const startedAt = Date.parse(session.captureStartedAt);
+  const tick = () => {
+    const left = Math.max(0, CAPTURE_MAX_SECONDS - (Date.now() - startedAt) / 1000);
+    countdownEl.textContent = `${Math.ceil(left)}s`;
+    if (left <= 0) clearCountdown();
+  };
+
+  tick();
+  countdownTimer = setInterval(tick, 500);
+}
+
 function renderReportSection(title: string, value: string): HTMLElement | null {
   if (!value) return null;
   const block = el("div", "report-block");
@@ -53,10 +126,47 @@ function renderSampleSizeSelector(selected: number, disabled: boolean): HTMLElem
     btn.type = "button";
     btn.disabled = disabled;
     btn.dataset.size = String(size);
+    btn.addEventListener("click", () => {
+      if (disabled) return;
+      void runAction({ type: "sidepanel:set-sample-size", sampleSize: size });
+    });
     group.append(btn);
   }
   wrap.append(group);
   return wrap;
+}
+
+function renderBatchVideoList(session: AnalysisSession): HTMLElement | null {
+  if (!session.batchVideos?.length) return null;
+
+  const list = el("ul", "batch-video-list");
+  session.batchVideos.forEach((video, index) => {
+    const item = el("li", "batch-item");
+    if (index === session.currentVideoIndex) item.classList.add("batch-item-active");
+
+    const title = el("span", "batch-item-title", video.title || video.videoUrl);
+    const status = el(
+      "span",
+      "batch-item-status",
+      BATCH_STATUS_LABELS[video.status ?? "pending"],
+    );
+    item.append(title, status);
+    list.append(item);
+  });
+
+  return list;
+}
+
+function renderRecordingBanner(): HTMLElement {
+  const banner = el("div", "recording-banner");
+  const countdown = el("span", "recording-countdown", `${CAPTURE_MAX_SECONDS}s`);
+  countdown.id = "recording-countdown";
+  banner.append(
+    el("span", "recording-pulse"),
+    el("span", undefined, "正在录制标签页音频/视频，请勿切换窗口"),
+    countdown,
+  );
+  return banner;
 }
 
 function renderExportActions(session: AnalysisSession): HTMLElement {
@@ -77,24 +187,21 @@ function renderExportActions(session: AnalysisSession): HTMLElement {
   const showExportError = (message: string) => {
     const existing = wrap.querySelector(".export-error");
     existing?.remove();
-    const error = el("p", "export-error", message);
-    wrap.append(error);
+    wrap.append(el("p", "export-error", message));
   };
 
   const mdBtn = el("button", "export secondary", "Markdown") as HTMLButtonElement;
   mdBtn.type = "button";
   mdBtn.addEventListener("click", () => {
     if (!report?.reportMarkdown || exporting) return;
-    const filename = `creator-report-${creatorId || "export"}.md`;
-    downloadText(filename, report.reportMarkdown, "text/markdown;charset=utf-8");
+    downloadText(`creator-report-${creatorId || "export"}.md`, report.reportMarkdown, "text/markdown;charset=utf-8");
   });
 
   const jsonBtn = el("button", "export secondary", "JSON") as HTMLButtonElement;
   jsonBtn.type = "button";
   jsonBtn.addEventListener("click", () => {
     if (!report || exporting) return;
-    const filename = `creator-report-${creatorId || "export"}.json`;
-    downloadJson(filename, {
+    downloadJson(`creator-report-${creatorId || "export"}.json`, {
       creatorId: report.creatorId,
       sampleVideoCount: report.sampleVideoCount,
       reportJson: report.reportJson,
@@ -109,10 +216,8 @@ function renderExportActions(session: AnalysisSession): HTMLElement {
     void (async () => {
       try {
         const created = await createReportExport(creatorId, "pdf");
-        const task = await pollExportUntilReady(created.taskId);
-        const filename = `creator-report-${creatorId}.pdf`;
-        await downloadExportFile(created.taskId, filename);
-        if (!task.downloadUrl) return;
+        await pollExportUntilReady(created.taskId);
+        await downloadExportFile(created.taskId, `creator-report-${creatorId}.pdf`);
       } catch (error) {
         showExportError(error instanceof Error ? error.message : "PDF 导出失败");
       } finally {
@@ -181,43 +286,29 @@ function renderCreatorReport(session: AnalysisSession): HTMLElement {
 
   if (report.reportMarkdown) {
     const details = el("details", "report-markdown");
-    const summary = el("summary", undefined, "查看完整 Markdown 报告");
-    const pre = el("pre", "markdown-preview", report.reportMarkdown);
-    details.append(summary, pre);
+    details.append(
+      el("summary", undefined, "查看完整 Markdown 报告"),
+      el("pre", "markdown-preview", report.reportMarkdown),
+    );
     card.append(details);
   }
 
   card.append(renderExportActions(session));
-
   return card;
 }
 
-function render(session: AnalysisSession): void {
-  const root = document.getElementById("root");
-  if (!root) return;
-  root.replaceChildren();
+function updateSubtitle(session: AnalysisSession): void {
+  if (!subtitleEl) return;
+  subtitleEl.textContent =
+    session.mode === "batch" ? "抖音创作者批量分析" : "抖音单视频结构分析";
+}
 
-  const panel = el("main", "panel");
-  const header = el("header", "header");
-  header.append(
-    el("h1", undefined, "CreatorDNA"),
-    el("p", "subtitle", session.mode === "batch" ? "抖音创作者批量分析" : "抖音单视频结构分析"),
-  );
-  panel.append(header);
+function renderDynamic(session: AnalysisSession): void {
+  const dynamicRoot = document.getElementById("dynamic-root");
+  if (!dynamicRoot) return;
+  dynamicRoot.replaceChildren();
 
-  const settingsCard = el("section", "card settings");
-  settingsCard.append(el("h2", undefined, "连接设置"));
-  const apiKeyInput = el("input", "settings-input") as HTMLInputElement;
-  apiKeyInput.type = "password";
-  apiKeyInput.placeholder = "API Key（staging/production 必填）";
-  void browser.storage.local.get("apiKey").then((stored) => {
-    apiKeyInput.value = (stored.apiKey as string | undefined) || "";
-  });
-  apiKeyInput.addEventListener("change", () => {
-    void browser.storage.local.set({ apiKey: apiKeyInput.value.trim() });
-  });
-  settingsCard.append(el("label", "settings-label", "API Key"), apiKeyInput);
-  panel.append(settingsCard);
+  updateSubtitle(session);
 
   const isVideoPage = session.pageDetection?.pageType === "video" && !!session.videoMeta?.videoUrl;
   const isCreatorPage =
@@ -235,115 +326,130 @@ function render(session: AnalysisSession): void {
   if (isCreatorPage) {
     pageCard.append(el("p", "status-ok", "已识别创作者主页"));
     pageCard.append(
-      el("p", "meta-title", session.creatorProfile?.displayName || session.creatorProfile?.username || "（未读取到名称）"),
+      el(
+        "p",
+        "meta-title",
+        session.creatorProfile?.displayName || session.creatorProfile?.username || "（未读取到名称）",
+      ),
     );
-    const count = session.videoList?.length ?? 0;
-    pageCard.append(el("p", "meta-count", `已发现 ${count} 个视频链接`));
+    pageCard.append(el("p", "meta-count", `已发现 ${session.videoList?.length ?? 0} 个视频链接`));
   } else if (isVideoPage) {
     pageCard.append(el("p", "status-ok", "已识别视频页"));
     pageCard.append(el("p", "meta-title", session.videoMeta?.title || "（未读取到标题）"));
   } else {
     pageCard.append(el("p", "status-warn", "请在抖音视频页或创作者主页打开本侧边栏"));
   }
-  panel.append(pageCard);
+  dynamicRoot.append(pageCard);
 
   if (isCreatorPage) {
     const batchCard = el("section", "card");
     batchCard.append(el("h2", undefined, "批量分析"));
     const selectedSize = session.sampleSize ?? 10;
-    const selector = renderSampleSizeSelector(selectedSize, isWorking);
-    batchCard.append(selector);
+    batchCard.append(renderSampleSizeSelector(selectedSize, isWorking));
 
     if (session.videoList?.length) {
       const preview = el("ul", "video-preview");
       for (const video of session.videoList.slice(0, selectedSize)) {
-        const item = el("li", undefined, video.title || video.videoUrl);
-        preview.append(item);
+        preview.append(el("li", undefined, video.title || video.videoUrl));
       }
       batchCard.append(preview);
     }
 
     const batchBtn = el("button", undefined, isWorking ? "批量分析中…" : "开始批量分析") as HTMLButtonElement;
+    batchBtn.type = "button";
     batchBtn.disabled = !canBatchAnalyze || isWorking;
     batchBtn.addEventListener("click", () => {
-      const active = selector.querySelector<HTMLButtonElement>(".sample.active");
-      const size = Number(active?.dataset.size || selectedSize);
-      void browser.runtime.sendMessage({ type: "sidepanel:start-batch", sampleSize: size });
+      const confirmed = confirm(
+        "批量分析将自动切换当前标签页并依次录制各视频（约 60 秒/个）。\n\n请保持窗口在前台，不要手动切换标签页。\n\n是否继续？",
+      );
+      if (!confirmed) return;
+      void runAction({ type: "sidepanel:start-batch", sampleSize: selectedSize });
     });
-
-    selector.querySelectorAll<HTMLButtonElement>(".sample").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        if (isWorking) return;
-        selector.querySelectorAll(".sample").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-      });
-    });
-
     batchCard.append(batchBtn);
-    panel.append(batchCard);
+    dynamicRoot.append(batchCard);
   }
 
   if (isVideoPage) {
     const actions = el("section", "card actions");
     const analyzeBtn = el("button", undefined, isWorking ? "分析中…" : "开始分析") as HTMLButtonElement;
+    analyzeBtn.type = "button";
     analyzeBtn.disabled = !canSingleAnalyze || isWorking;
     analyzeBtn.addEventListener("click", () => {
-      void browser.runtime.sendMessage({ type: "sidepanel:start-analysis" });
+      void runAction({ type: "sidepanel:start-analysis" });
     });
     actions.append(analyzeBtn);
 
-    if (session.state === "done" || session.state === "error") {
+    if (session.state === "done") {
       const resetBtn = el("button", "secondary", "重新开始") as HTMLButtonElement;
+      resetBtn.type = "button";
       resetBtn.addEventListener("click", () => {
-        void browser.runtime.sendMessage({ type: "sidepanel:reset" });
+        void runAction({ type: "sidepanel:reset" });
       });
       actions.append(resetBtn);
     }
-    panel.append(actions);
+    dynamicRoot.append(actions);
   }
 
-  if (isWorking || (session.mode === "batch" && session.state === "done")) {
+  const showProgress =
+    isWorking || (session.mode === "batch" && session.state === "done");
+  const showBatchList =
+    session.mode === "batch" && session.state !== "idle" && !!session.batchVideos?.length;
+
+  if (showProgress || showBatchList) {
     const progressCard = el("section", "card");
     progressCard.append(el("h2", undefined, "进度"));
-    const bar = el("div", "progress-bar");
-    const fill = el("div", "progress-fill");
-    fill.style.width = `${session.progress ?? 0}%`;
-    bar.append(fill);
-    progressCard.append(bar);
 
-    if (session.mode === "batch" && session.totalVideos) {
-      progressCard.append(
-        el(
-          "p",
-          "batch-progress",
-          `${session.finishedVideos ?? 0} / ${session.totalVideos} 个视频`,
-        ),
-      );
+    if (session.state === "capturing") {
+      progressCard.append(renderRecordingBanner());
     }
-    progressCard.append(el("p", undefined, session.currentStep || "处理中"));
-    panel.append(progressCard);
+
+    if (showProgress) {
+      const bar = el("div", "progress-bar");
+      const fill = el("div", "progress-fill");
+      fill.style.width = `${session.progress ?? 0}%`;
+      bar.append(fill);
+      progressCard.append(bar);
+
+      if (session.mode === "batch" && session.totalVideos) {
+        progressCard.append(
+          el(
+            "p",
+            "batch-progress",
+            `${session.finishedVideos ?? 0} / ${session.totalVideos} 个视频`,
+          ),
+        );
+      }
+      progressCard.append(el("p", undefined, session.currentStep || "处理中"));
+    }
+
+    const batchList = renderBatchVideoList(session);
+    if (batchList) progressCard.append(batchList);
+
+    dynamicRoot.append(progressCard);
   }
 
   if (session.state === "error") {
     const errorCard = el("section", "card error");
     errorCard.append(el("h2", undefined, "错误"), el("p", undefined, getErrorMessage(session)));
     const resetBtn = el("button", "secondary", "重新开始") as HTMLButtonElement;
+    resetBtn.type = "button";
     resetBtn.addEventListener("click", () => {
-      void browser.runtime.sendMessage({ type: "sidepanel:reset" });
+      void runAction({ type: "sidepanel:reset" });
     });
     errorCard.append(resetBtn);
-    panel.append(errorCard);
+    dynamicRoot.append(errorCard);
   }
 
   if (session.state === "done" && session.mode === "batch" && session.creatorReport) {
-    panel.append(renderCreatorReport(session));
+    dynamicRoot.append(renderCreatorReport(session));
     const resetCard = el("section", "card actions");
     const resetBtn = el("button", "secondary", "重新开始") as HTMLButtonElement;
+    resetBtn.type = "button";
     resetBtn.addEventListener("click", () => {
-      void browser.runtime.sendMessage({ type: "sidepanel:reset" });
+      void runAction({ type: "sidepanel:reset" });
     });
     resetCard.append(resetBtn);
-    panel.append(resetCard);
+    dynamicRoot.append(resetCard);
   }
 
   if (session.state === "done" && session.mode !== "batch" && session.analysis) {
@@ -378,21 +484,74 @@ function render(session: AnalysisSession): void {
       block.append(list);
       reportCard.append(block);
     }
-    panel.append(reportCard);
+    dynamicRoot.append(reportCard);
   }
+
+  syncCountdown(session);
+}
+
+function initShell(): void {
+  const root = document.getElementById("root");
+  if (!root) return;
+
+  const panel = el("main", "panel");
+  const header = el("header", "header");
+  subtitleEl = el("p", "subtitle", "抖音单视频结构分析");
+  header.append(el("h1", undefined, "CreatorDNA"), subtitleEl);
+  panel.append(header);
+
+  const settingsCard = el("section", "card settings");
+  settingsCard.id = "settings-card";
+  settingsCard.append(el("h2", undefined, "连接设置"));
+  const apiKeyLabel = el("label", "settings-label", "API Key");
+  apiKeyLabel.htmlFor = "api-key-input";
+  const apiKeyInput = el("input", "settings-input") as HTMLInputElement;
+  apiKeyInput.id = "api-key-input";
+  apiKeyInput.type = "password";
+  apiKeyInput.placeholder = "API Key（staging/production 必填）";
+  apiKeyInput.autocomplete = "off";
+  void browser.storage.local.get("apiKey").then((stored) => {
+    apiKeyInput.value = (stored.apiKey as string | undefined) || "";
+  });
+  apiKeyInput.addEventListener("input", () => {
+    if (apiKeySaveTimer) clearTimeout(apiKeySaveTimer);
+    apiKeySaveTimer = setTimeout(() => {
+      void browser.storage.local.set({ apiKey: apiKeyInput.value.trim() });
+    }, 300);
+  });
+  settingsCard.append(apiKeyLabel, apiKeyInput);
+  panel.append(settingsCard);
+
+  const feedbackBanner = el("div", "feedback-banner");
+  feedbackBanner.id = "feedback-banner";
+  feedbackBanner.hidden = true;
+  panel.append(feedbackBanner);
+
+  const dynamicRoot = el("div");
+  dynamicRoot.id = "dynamic-root";
+  panel.append(dynamicRoot);
 
   root.append(panel);
 }
 
-async function refresh(): Promise<void> {
-  const response = await browser.runtime.sendMessage({ type: "sidepanel:get-session" });
-  if (response?.ok) render(response.session);
+function update(session: AnalysisSession): void {
+  if (session.updatedAt === lastRenderedAt) return;
+  lastRenderedAt = session.updatedAt;
+  renderDynamic(session);
 }
 
+async function refresh(): Promise<void> {
+  const response = await browser.runtime.sendMessage({ type: "sidepanel:get-session" });
+  if (response?.ok) update(response.session);
+}
+
+initShell();
 void refresh();
-browser.storage.onChanged.addListener(() => {
-  void refresh();
+
+browser.storage.onChanged.addListener((changes, area) => {
+  if (area !== "local") return;
+  if (changes[STORAGE_SESSION_KEY]) {
+    const next = changes[STORAGE_SESSION_KEY].newValue as AnalysisSession | undefined;
+    if (next) update(next);
+  }
 });
-setInterval(() => {
-  void refresh();
-}, 1_500);

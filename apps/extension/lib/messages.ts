@@ -48,6 +48,7 @@ export interface AnalysisSession {
   analysis?: VideoStyleAnalysis;
   visualAnalysis?: VisualAnalysis;
   creatorReport?: CreatorReport;
+  captureStartedAt?: string;
   updatedAt: string;
 }
 
@@ -63,6 +64,7 @@ export type ExtensionMessage =
   | { type: "sidepanel:get-session" }
   | { type: "sidepanel:start-analysis" }
   | { type: "sidepanel:start-batch"; sampleSize: number }
+  | { type: "sidepanel:set-sample-size"; sampleSize: number }
   | { type: "sidepanel:reset" }
   | { type: "offscreen:start-capture"; streamId: string; maxDurationMs: number }
   | { type: "offscreen:stop-capture" }
